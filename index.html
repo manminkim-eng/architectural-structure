@@ -1624,6 +1624,63 @@ function StepCombo({dead,live,snow,wind,seis}){
   );
 }
 
+/* ═══════════════════════════════════════
+   계산서 미리보기 — 모바일 스케일링 래퍼
+   A4 고정 너비(794px)를 컨테이너 너비에 맞게 자동 축소
+══════════════════════════════════════ */
+const A4_W = 794;
+
+function ScaledPreview({ children }) {
+  const outerRef = useRef(null);
+  const innerRef = useRef(null);
+  const [scale, setScale] = React.useState(1);
+  const [innerH, setInnerH] = React.useState(0);
+
+  React.useEffect(() => {
+    function update() {
+      if (!outerRef.current || !innerRef.current) return;
+      const avail = outerRef.current.clientWidth;
+      const s = avail >= A4_W ? 1 : avail / A4_W;
+      setScale(s);
+      setInnerH(innerRef.current.scrollHeight);
+    }
+    update();
+    const ro = new ResizeObserver(update);
+    if (outerRef.current) ro.observe(outerRef.current);
+    if (innerRef.current) ro.observe(innerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  // scale 후 실제 점유 높이 = innerH * scale
+  const outerHeight = innerH > 0 ? innerH * scale : 'auto';
+
+  // 데스크탑(scale=1)에서도 카드 너비가 A4보다 넓을 때 중앙 정렬
+  // translateX: scale 변환 전 좌표계에서 offset 계산
+  const [avail, setAvail] = React.useState(A4_W);
+  React.useEffect(() => {
+    function syncAvail() {
+      if (outerRef.current) setAvail(outerRef.current.clientWidth);
+    }
+    syncAvail();
+    const ro = new ResizeObserver(syncAvail);
+    if (outerRef.current) ro.observe(outerRef.current);
+    return () => ro.disconnect();
+  }, []);
+  const offsetX = (avail - A4_W * scale) / 2 / scale;
+
+  return (
+    <div ref={outerRef} style={{ width: '100%', overflow: 'hidden', height: outerHeight || 'auto' }}>
+      <div ref={innerRef} style={{
+        width: A4_W,
+        transformOrigin: 'top left',
+        transform: `translateX(${offsetX}px) scale(${scale})`,
+      }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 /* ══════════════════════════════════════
    인쇄 계산서 (A4 서식)
 ══════════════════════════════════════ */
@@ -2208,8 +2265,10 @@ function App(){
               <div><div className="ch-t">A4 계산서 미리보기</div>
               <div className="ch-s">[🖨️ 인쇄] 버튼 또는 우측 하단 FAB으로 인쇄 / PDF 저장</div></div>
             </div>
-            <div style={{padding:'14px 16px'}}>
-              <PrintReport info={info} dead={dead} live={live} snow={snow} wind={wind} seis={seis}/>
+            <div style={{padding:'14px 0'}}>
+              <ScaledPreview>
+                <PrintReport info={info} dead={dead} live={live} snow={snow} wind={wind} seis={seis}/>
+              </ScaledPreview>
             </div>
           </div>
         )}
