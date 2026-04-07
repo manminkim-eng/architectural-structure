@@ -1,0 +1,2453 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>건축물 설계하중 통합 산정 — MANMIN Ver 1.0</title>
+<meta name="description" content="KDS 41 12 00 : 2022 기준 건축물 설계하중 통합 산정 — 고정하중·활하중·적설하중·풍하중·지진하중 + LRFD 하중조합 자동 산출"/>
+<meta name="theme-color" content="#1e3a5f"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="설계하중"/>
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="./manifest.json"/>
+<!-- iOS 홈화면 아이콘 -->
+<link rel="apple-touch-icon" href="./icons/icon-152.png"/>
+<link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192.png"/>
+<link rel="apple-touch-icon" sizes="512x512" href="./icons/icon-512.png"/>
+<!-- 파비콘 -->
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/icon-96.png"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=Noto+Sans+Mono:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+/* ════════════════════════════════════════
+   기반 리셋 & 토큰
+════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#1e3a5f;--navy-dk:#0f2240;--navy-lt:#2d5186;
+  --gold:#e8a020;--gold-lt:#fef3c7;
+  --teal:#0d9488;--teal-lt:#ccfbf1;
+  --green:#15803d;--green-lt:#dcfce7;
+  --red:#dc2626;--red-lt:#fee2e2;
+  --blue:#1d4ed8;--blue-lt:#eff6ff;
+  --bg:#eef2f7;--surface:#fff;
+  --bd:#d1dbe8;--bd2:#e2e8f0;
+  --txt:#1e293b;--muted:#64748b;--faint:#94a3b8;
+  --sh1:0 1px 4px rgba(0,0,0,.07);
+  --sh2:0 4px 18px rgba(0,0,0,.10);
+  --sh3:0 10px 40px rgba(0,0,0,.15);
+  --r:10px;--rL:16px;
+}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased;min-height:100vh;}
+*{font-family:'Noto Sans KR',sans-serif!important;}
+.mono{font-family:'Noto Sans Mono','Noto Sans KR',monospace!important;}
+input[type=number]::-webkit-inner-spin-button{opacity:.4;}
+input,select{font-size:14px!important;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#bfcfdf;border-radius:3px;}
+
+/* ════ 인쇄 ════ */
+@media print{
+  @page{
+    size:A4 portrait;
+    margin:15mm 12mm 20mm 15mm;
+    @bottom-left{content:"건축물 설계하중 통합 산정서  KDS 41 12 00 : 2022";font-size:7pt;color:#9ca3af;}
+    @bottom-right{content:"MANMIN Ver 1.0  p." counter(page);font-size:7pt;color:#9ca3af;}
+  }
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  body{background:#fff!important;margin:0;padding:0;}
+  #ui-shell{display:none!important;}
+  #print-report-wrap{display:block!important;}
+  .ps{break-inside:avoid;page-break-inside:avoid;margin-bottom:10pt;}
+  .pb{break-before:page;page-break-before:always;}
+  table{border-collapse:collapse!important;}
+  td,th{border:1px solid #c0d0e0!important;}
+  .pr-cover{background:#1e3a5f!important;color:#fff!important;}
+  .pr-sec-hd{background:#1e3a5f!important;color:#fff!important;}
+  *{box-shadow:none!important;}
+}
+#print-report-wrap{display:none;}
+
+/* ════ 레이아웃 ════ */
+#ui-shell{display:flex;flex-direction:column;min-height:100vh;}
+
+/* ════ 헤더 — 기존 MANMIN 디자인 통일 ════ */
+.app-header{
+  background:linear-gradient(135deg,#0a1628 0%,#1e3a5f 50%,#2d5186 100%);
+  color:#fff;padding:0;position:sticky;top:0;z-index:600;
+  box-shadow:0 2px 20px rgba(0,0,0,.32);
+}
+.hdr-top{
+  max-width:1240px;margin:0 auto;
+  display:flex;align-items:flex-end;justify-content:space-between;
+  padding:18px 20px 0;gap:16px;flex-wrap:wrap;
+}
+.hdr-left{}
+.hdr-eyebrow{
+  font-size:10px;font-weight:600;opacity:.65;
+  letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px;
+  font-family:'Noto Sans KR',sans-serif;
+}
+.hdr-h1{
+  font-size:clamp(16px,3vw,22px);font-weight:900;
+  letter-spacing:-.01em;line-height:1.15;
+}
+.hdr-sub{
+  font-size:10.5px;margin-top:6px;opacity:.80;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.hdr-manmin{
+  font-family:'Orbitron',sans-serif!important;
+  font-weight:900;font-size:11px;color:#fbbf24;
+  letter-spacing:.10em;text-shadow:0 0 10px rgba(251,191,36,.45);
+}
+.hdr-right{
+  text-align:right;opacity:.75;font-size:11px;
+  line-height:1.7;flex-shrink:0;padding-bottom:4px;
+}
+.hdr-right strong{font-size:13px;font-weight:800;opacity:1;}
+.hdr-right em{font-size:9.5px;color:#93c5fd;font-style:normal;}
+/* 탭이 헤더 안에 통합 */
+.hdr-tabs{
+  max-width:1240px;margin:0 auto;
+  display:flex;overflow-x:auto;padding:0 12px;
+  scrollbar-width:none;gap:0;margin-top:10px;
+}
+.hdr-tabs::-webkit-scrollbar{display:none;}
+.hdr-tab{
+  flex-shrink:0;background:none;border:none;
+  border-bottom:3px solid transparent;
+  color:rgba(255,255,255,.60);font-size:12px;font-weight:600;
+  padding:10px 14px;cursor:pointer;
+  transition:color .15s,border-color .15s,background .15s;
+  display:flex;align-items:center;gap:5px;white-space:nowrap;
+  margin-bottom:-1px;border-radius:6px 6px 0 0;
+}
+.hdr-tab:hover{color:rgba(255,255,255,.88);background:rgba(255,255,255,.06);}
+.hdr-tab.on{color:#fff;border-bottom-color:#4ade80;font-weight:800;background:rgba(255,255,255,.08);}
+.hdr-tab.ok .hdr-tn{background:#22c55e;color:#fff;}
+.hdr-tn{
+  background:rgba(255,255,255,.18);color:rgba(255,255,255,.8);
+  border-radius:50%;width:18px;height:18px;font-size:9px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.hdr-tab.on .hdr-tn{background:#4ade80;color:#052e16;}
+/* 요약 바 */
+.sum-bar{
+  background:#0f172a;padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.sum-bar-inner{
+  max-width:1240px;margin:0 auto;padding:0 20px;
+  display:flex;gap:16px;flex-wrap:wrap;align-items:center;
+}
+.sum-chip{font-size:11.5px;color:#94a3b8;display:flex;align-items:center;gap:4px;}
+.sum-chip b{color:#4ade80;font-family:'Noto Sans Mono',monospace!important;font-size:12px;}
+.sum-chip.na b{color:#475569;}
+/* 헤더 버튼 */
+.ha{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding-bottom:4px;}
+.hbtn{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.20);color:#fff;border-radius:8px;padding:7px 13px;font-size:11px;font-weight:700;cursor:pointer;transition:background .15s;white-space:nowrap;}
+.hbtn:hover{background:rgba(255,255,255,.24);}
+.hbtn.ac{background:#e8a020;color:#1a1a1a;border-color:transparent;}
+.hbtn.ac:hover{background:#f0b030;}
+.hbtn.teal{background:#0d9488;border-color:transparent;}
+.hbtn.teal:hover{background:#0f766e;}
+
+/* ════ 메인 ════ */
+.main-body{max-width:1240px;margin:0 auto;padding:0 12px 140px;width:100%;}
+
+/* ════ 카드 ════ */
+.card{background:var(--surface);border-radius:var(--rL);box-shadow:var(--sh2);margin-top:15px;border:1px solid var(--bd);overflow:hidden;}
+.ch{background:linear-gradient(90deg,var(--navy-dk) 0%,var(--navy-lt) 100%);color:#fff;padding:13px 18px;display:flex;align-items:center;gap:10px;}
+.ch-icon{font-size:19px;line-height:1;flex-shrink:0;}
+.ch-t{font-size:13.5px;font-weight:800;letter-spacing:-.01em;}
+.ch-s{font-size:10px;opacity:.78;margin-top:1px;}
+.cb{padding:16px 18px;}
+
+/* ════ 그리드 ════ */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media(max-width:760px){.g4{grid-template-columns:1fr 1fr;}.g3{grid-template-columns:1fr 1fr;}}
+@media(max-width:480px){.g2,.g3,.g4{grid-template-columns:1fr;}}
+
+/* ════ 폼 요소 ════ */
+.fl{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;display:flex;align-items:center;gap:4px;}
+.fu{font-size:9.5px;background:var(--bg);color:var(--muted);padding:1px 5px;border-radius:4px;}
+.fi{
+  width:100%;background:var(--bg);border:1.5px solid var(--bd);
+  border-radius:7px;padding:8px 11px;font-size:13px;color:var(--txt);
+  outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.fi:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(30,58,95,.1);}
+.fs{
+  width:100%;background:var(--bg);border:1.5px solid var(--bd);
+  border-radius:7px;padding:8px 30px 8px 11px;font-size:13px;color:var(--txt);
+  cursor:pointer;outline:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%2364748b' stroke-width='1.7' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;
+  transition:border-color .15s;
+}
+.fs:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(30,58,95,.1);}
+
+/* ════ 결과 패널 ════ */
+.rbox{
+  background:linear-gradient(135deg,var(--navy-dk),var(--navy));
+  color:#fff;border-radius:var(--r);padding:14px 16px;margin-top:12px;
+}
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.10);}
+.rrow:last-child{border-bottom:none;}
+.rlbl{font-size:11px;opacity:.83;}
+.rval{font-size:14px;font-weight:800;color:#fde68a;}
+.rval.lg{font-size:18px;color:#6ee7b7;}
+.rval.warn{color:#fca5a5;}
+
+/* ════ 정보 박스 ════ */
+.ibox{background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:11px 14px;font-size:11px;color:#0c4a6e;line-height:1.85;margin-top:10px;}
+.ibox b.law{color:#1e40af;font-weight:800;}
+.wbox{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 13px;font-size:11px;color:#78350f;line-height:1.75;margin-top:10px;}
+.gbox{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 13px;font-size:11px;color:#14532d;line-height:1.75;margin-top:10px;}
+.rbox-light{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 13px;font-size:11px;color:#7f1d1d;line-height:1.75;margin-top:10px;}
+
+/* ════ 태그 ════ */
+.tag{display:inline-flex;align-items:center;gap:3px;border:1px solid;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;line-height:1.5;}
+.tag.bl{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8;}
+.tag.gn{background:#f0fdf4;border-color:#bbf7d0;color:#15803d;}
+.tag.am{background:#fffbeb;border-color:#fde68a;color:#92400e;}
+.tag.rd{background:#fef2f2;border-color:#fecaca;color:#dc2626;}
+.tag.tl{background:#f0fdfa;border-color:#99f6e4;color:#0f766e;}
+
+/* ════ 버튼 ════ */
+.btn-main{
+  width:100%;background:linear-gradient(135deg,var(--navy),var(--navy-lt));
+  color:#fff;border:none;border-radius:10px;padding:13px 20px;
+  font-size:14px;font-weight:800;cursor:pointer;margin-top:14px;
+  box-shadow:0 4px 16px rgba(30,58,95,.35);
+  transition:transform .12s,box-shadow .12s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-main:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(30,58,95,.42);}
+.btn-main:active{transform:none;}
+.btn-main.gn{background:linear-gradient(135deg,var(--green),#16a34a);box-shadow:0 4px 16px rgba(21,128,61,.35);}
+.btn-main.gn:hover{box-shadow:0 7px 22px rgba(21,128,61,.45);}
+.btn-nav{background:var(--surface);border:1.5px solid var(--bd);color:var(--navy);border-radius:9px;padding:10px 20px;font-size:12px;font-weight:800;cursor:pointer;transition:background .15s,border-color .15s;}
+.btn-nav:hover{background:var(--bg);border-color:var(--navy);}
+.btn-nav.fwd{background:var(--navy);color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(30,58,95,.3);}
+.btn-nav.fwd:hover{background:var(--navy-lt);}
+
+/* ════ 하중 테이블 ════ */
+.ltable{width:100%;border-collapse:collapse;font-size:12px;}
+.ltable th{background:var(--navy);color:#fff;padding:8px 10px;text-align:center;font-weight:700;white-space:nowrap;}
+.ltable td{padding:6px 9px;text-align:center;border-bottom:1px solid var(--bd2);}
+.ltable tr:nth-child(even) td{background:#f8fafc;}
+.ltable tr:last-child td{border-bottom:none;}
+.ltable .hl td{background:#fffbeb!important;font-weight:900;color:var(--navy);}
+.ltable .gov td{background:#fff0f0!important;}
+.ltable .gov td:first-child{color:var(--red);font-weight:900;}
+
+/* ════ 콤보 테이블 ════ */
+.ctable{width:100%;border-collapse:collapse;font-size:11.5px;}
+.ctable th{background:var(--navy-dk);color:#fff;padding:8px 9px;text-align:center;font-weight:700;white-space:nowrap;}
+.ctable td{padding:7px 9px;border-bottom:1px solid var(--bd2);}
+.ctable td.cn{text-align:center;font-weight:800;}
+.ctable td.cf{font-size:11px;color:var(--muted);}
+.ctable td.cv{text-align:right;font-weight:700;}
+.ctable tr:nth-child(even) td{background:#f8fafc;}
+.ctable tr.gov td{background:#fff7ed!important;font-weight:900;}
+.ctable tr.gov td.cn{color:var(--red);}
+.ctable tr.gov td.cv{color:var(--navy-dk);font-size:13px;}
+
+/* ════ 최종 패널 ════ */
+.fpanel{
+  background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 60%,#1e40af 100%);
+  color:#fff;border-radius:var(--rL);padding:20px 20px;margin-top:14px;
+  box-shadow:0 8px 36px rgba(15,23,42,.42);
+}
+.fpt{font-size:15px;font-weight:900;letter-spacing:-.01em;display:flex;align-items:center;gap:8px;}
+.fpg{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-top:14px;}
+.fpi{background:rgba(255,255,255,.09);border-radius:9px;padding:11px 12px;text-align:center;border:1px solid rgba(255,255,255,.11);}
+.fpi.gov{border-color:rgba(248,113,113,.5);background:rgba(220,38,38,.13);}
+.fpil{font-size:10px;opacity:.72;font-weight:600;margin-bottom:4px;}
+.fpiv{font-size:16px;font-weight:900;color:#fde68a;}
+.fpi.gov .fpiv{color:#fca5a5;}
+.fpiu{font-size:9.5px;opacity:.6;margin-top:2px;}
+
+/* ════ 진행 표시 ════ */
+.prog-bar{
+  background:var(--surface);padding:10px 16px;border-radius:var(--r);
+  border:1px solid var(--bd);margin-top:13px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.ps-item{display:flex;align-items:center;gap:4px;font-size:10.5px;}
+.ps-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;flex-shrink:0;transition:background .2s;}
+.ps-dot.done{background:var(--green);color:#fff;}
+.ps-dot.act{background:var(--navy);color:#fff;box-shadow:0 0 0 3px rgba(30,58,95,.2);}
+.ps-dot.idle{background:var(--bg);color:var(--faint);border:1.5px solid var(--bd);}
+.ps-arrow{color:var(--bd);font-size:12px;}
+
+/* ════ 고정하중 테이블 ════ */
+.dl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.dl-table{width:100%;border-collapse:collapse;min-width:520px;}
+.dl-table th{background:#f0f4f8;padding:7px 8px;text-align:left;font-weight:700;color:#374151;border-bottom:2px solid var(--bd);font-size:11.5px;}
+.dl-table td{padding:5px 6px;border-bottom:1px solid var(--bd2);}
+.dl-table tr:last-child td{border-bottom:none;}
+.dl-table tr.disabled td{opacity:.4;}
+
+/* ════ 재료 선택 드롭다운 그룹 ════ */
+.mat-group{background:#f8fafc;border-radius:8px;padding:11px 13px;margin-bottom:12px;border:1px solid var(--bd2);}
+.mat-title{font-size:11px;font-weight:800;color:var(--navy);margin-bottom:8px;}
+
+/* ════ 검증 배지 ════ */
+.vbadge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;}
+.vbadge.ok{background:#dcfce7;color:#15803d;}
+.vbadge.warn{background:#fff7ed;color:#b45309;}
+.vbadge.err{background:#fee2e2;color:#dc2626;}
+
+/* ════ 단계 공식 박스 ════ */
+.fbox{
+  background:#f0f4f8;border-radius:8px;padding:11px 14px;
+  font-size:12px;border-left:3px solid var(--navy);margin:8px 0;
+  line-height:1.75;color:var(--navy-dk);
+}
+.fbox .eq{font-weight:800;color:var(--navy);}
+
+/* ════ 소계 행 ════ */
+.subtot{background:#eff6ff!important;font-weight:800;color:var(--blue)!important;}
+
+/* ════ 분리선 ════ */
+hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
+
+/* ════ FAB 그룹 ════ */
+.fab-wrap{position:fixed;bottom:18px;right:16px;z-index:1200;display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+.fab{
+  background:linear-gradient(135deg,var(--navy-dk),var(--navy));
+  color:#fff;border:none;border-radius:14px;
+  padding:10px 14px;cursor:pointer;min-width:52px;
+  box-shadow:0 4px 20px rgba(30,58,95,.52);
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  transition:transform .15s,box-shadow .15s;
+}
+.fab:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(30,58,95,.65);}
+.fab.am{background:linear-gradient(135deg,#92400e,#b45309);}
+.fab.am:hover{box-shadow:0 8px 28px rgba(146,64,14,.55);}
+.fab .fi-icon{font-size:19px;line-height:1;}
+.fab .fi-lbl{font-size:9px;font-weight:800;letter-spacing:.04em;}
+.fab .fi-sub{font-size:8px;opacity:.75;}
+
+/* ════ PWA 설치 배너 ════ */
+.pwa-banner{
+  position:fixed;bottom:0;left:0;right:0;z-index:2000;
+  background:linear-gradient(135deg,#0a1628 0%,#1e3a5f 100%);
+  color:#fff;padding:14px 20px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  box-shadow:0 -4px 24px rgba(0,0,0,.38);
+  border-top:2px solid rgba(251,191,36,.40);
+  animation:slideUp .4s cubic-bezier(.34,1.2,.64,1);
+  flex-wrap:wrap;
+}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.pwa-banner-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}
+.pwa-banner-icon{width:46px;height:46px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,#1e3a5f,#2d5186);border:1.5px solid rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;font-size:22px;}
+.pwa-banner-text .pwa-ttl{font-size:13px;font-weight:800;margin-bottom:2px;}
+.pwa-banner-text .pwa-sub{font-size:10.5px;opacity:.72;line-height:1.5;}
+.pwa-banner-btns{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.pwa-btn-install{
+  background:linear-gradient(135deg,#e8a020,#fbbf24);color:#1a1a1a;
+  border:none;border-radius:9px;padding:9px 16px;font-size:12px;font-weight:800;
+  cursor:pointer;white-space:nowrap;
+  box-shadow:0 3px 12px rgba(232,160,32,.42);
+  transition:transform .12s,box-shadow .12s;display:flex;align-items:center;gap:5px;
+}
+.pwa-btn-install:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(232,160,32,.55);}
+.pwa-btn-dismiss{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.22);
+  border-radius:9px;padding:9px 12px;font-size:11.5px;font-weight:600;cursor:pointer;white-space:nowrap;
+  transition:background .12s;}
+.pwa-btn-dismiss:hover{background:rgba(255,255,255,.22);}
+/* iOS용 설치 안내 */
+.ios-hint{font-size:11.5px;opacity:.82;display:flex;align-items:center;gap:5px;}
+.ios-hint .share-icon{font-size:16px;}
+
+/* ════ 우측 하단 헬프 모달 FAB ════ */
+.help-fab{
+  position:fixed;bottom:18px;right:84px;z-index:1200;
+  width:52px;height:52px;border-radius:14px;
+  background:linear-gradient(135deg,#0d9488,#0f766e);
+  color:#fff;border:none;cursor:pointer;
+  box-shadow:0 4px 20px rgba(13,148,136,.52);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  transition:transform .15s,box-shadow .15s;
+  font-size:9px;font-weight:800;letter-spacing:.04em;
+}
+.help-fab:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(13,148,136,.65);}
+.help-fab-icon{font-size:19px;line-height:1;}
+/* 미열람 뱃지 */
+.help-fab .badge{
+  position:absolute;top:-5px;right:-5px;
+  background:#dc2626;color:#fff;border-radius:50%;
+  width:16px;height:16px;font-size:9px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid #fff;
+}
+
+/* ════ 헬프 모달 ════ */
+.help-mo-ov{
+  position:fixed;inset:0;z-index:9500;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(5px);
+  display:flex;align-items:flex-end;justify-content:flex-end;
+  padding:16px;
+  animation:moFade .2s ease;
+}
+.help-mo-box{
+  background:#fff;border-radius:20px;
+  width:100%;max-width:480px;
+  max-height:calc(100vh - 90px);
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 24px 72px rgba(0,0,0,.42),0 0 0 1px rgba(255,255,255,.06);
+  animation:moUp .3s cubic-bezier(.34,1.3,.64,1);
+}
+.help-mo-hd{
+  background:linear-gradient(135deg,var(--navy-dk),var(--navy));
+  color:#fff;padding:15px 18px 0;flex-shrink:0;
+}
+.help-mo-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:11px;}
+.help-mo-tabs{display:flex;overflow-x:auto;gap:0;scrollbar-width:none;}
+.help-mo-tabs::-webkit-scrollbar{display:none;}
+.help-mo-tab{flex-shrink:0;background:none;border:none;border-bottom:3px solid transparent;
+  color:rgba(255,255,255,.62);font-size:11.5px;font-weight:700;padding:8px 13px;
+  cursor:pointer;white-space:nowrap;margin-bottom:-1px;transition:color .1s,border-color .1s;}
+.help-mo-tab.on{color:#fff;border-bottom-color:#fbbf24;}
+.help-mo-body{flex:1;overflow-y:auto;padding:16px 18px;}
+
+/* 이용 방법 스텝 */
+.usage-step{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #f1f5f9;}
+.usage-step:last-child{border-bottom:none;}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;
+  font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-content .step-title{font-size:12.5px;font-weight:800;color:var(--navy);margin-bottom:3px;}
+.step-content .step-desc{font-size:11px;color:var(--muted);line-height:1.8;}
+
+/* 관련 자료 목록 */
+.ref-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border:1.5px solid var(--bd);border-radius:10px;margin-bottom:8px;
+  cursor:pointer;transition:border-color .12s,background .12s;text-decoration:none;
+  background:#fff;
+}
+.ref-item:hover{border-color:var(--navy);background:#f8fafc;}
+.ref-item-icon{width:38px;height:38px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:18px;}
+.ref-item-icon.kds{background:#eff6ff;}
+.ref-item-icon.ref{background:#f0fdf4;}
+.ref-item-info{flex:1;min-width:0;}
+.ref-item-title{font-size:12px;font-weight:800;color:var(--txt);margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ref-item-sub{font-size:10.5px;color:var(--muted);line-height:1.5;}
+.ref-item-badge{font-size:9px;font-weight:700;background:#eff6ff;color:#1d4ed8;
+  border-radius:4px;padding:2px 6px;flex-shrink:0;}
+.ref-item-badge.gn{background:#f0fdf4;color:#15803d;}
+
+/* PWA 설치 안내 카드 */
+.pwa-guide-card{
+  background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);
+  border-radius:12px;padding:14px 16px;margin-bottom:14px;color:#fff;
+}
+.pwa-guide-card h3{font-size:13px;font-weight:800;margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;}
+.pwa-guide-step{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:11.5px;opacity:.88;}
+.pwa-guide-step .n{width:20px;height:20px;border-radius:50%;background:rgba(251,191,36,.25);
+  color:#fbbf24;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pwa-install-btn-full{
+  width:100%;background:linear-gradient(135deg,#e8a020,#fbbf24);color:#1a1a1a;
+  border:none;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:800;
+  cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px;
+  box-shadow:0 4px 16px rgba(232,160,32,.38);transition:transform .12s,box-shadow .12s;
+}
+.pwa-install-btn-full:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(232,160,32,.52);}
+.pwa-install-btn-full:disabled{opacity:.45;cursor:default;transform:none;}
+
+@media(max-width:640px){
+  .help-fab{right:76px;bottom:16px;}
+  .help-mo-ov{padding:12px;align-items:flex-end;justify-content:center;}
+  .help-mo-box{max-width:100%;}
+  .pwa-banner{padding:12px 14px;gap:10px;}
+  .pwa-banner-icon{width:38px;height:38px;font-size:18px;}
+  .pwa-banner-text .pwa-ttl{font-size:12px;}
+  .pwa-banner-text .pwa-sub{font-size:9.5px;}
+  .pwa-btn-install{padding:8px 12px;font-size:11.5px;}
+  .pwa-btn-dismiss{padding:8px 10px;font-size:11px;}
+}
+
+/* ════ 가이드 모달 ════ */
+.mo-ov{
+  position:fixed;inset:0;z-index:9000;
+  background:rgba(0,0,0,.60);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;
+  animation:moFade .2s ease;
+}
+@keyframes moFade{from{opacity:0}to{opacity:1}}
+.mo-box{
+  background:#fff;border-radius:20px;
+  width:100%;max-width:640px;
+  max-height:calc(100vh - 40px);
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 24px 72px rgba(0,0,0,.42),0 0 0 1px rgba(255,255,255,.06);
+  animation:moUp .3s cubic-bezier(.34,1.3,.64,1);
+}
+@keyframes moUp{from{transform:scale(.94) translateY(10px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.mo-hd{
+  background:linear-gradient(135deg,var(--navy-dk),var(--navy));
+  color:#fff;padding:15px 18px 0;flex-shrink:0;
+}
+.mo-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:11px;}
+.mo-cls{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.mo-cls:hover{background:rgba(255,255,255,.28);}
+.mo-tabs{display:flex;overflow-x:auto;gap:0;scrollbar-width:none;}
+.mo-tabs::-webkit-scrollbar{display:none;}
+.mo-tab{flex-shrink:0;background:none;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,.62);font-size:11.5px;font-weight:700;padding:8px 13px;cursor:pointer;white-space:nowrap;margin-bottom:-1px;transition:color .1s,border-color .1s;}
+.mo-tab.on{color:#fff;border-bottom-color:var(--gold);}
+.mo-body{flex:1;overflow-y:auto;padding:15px 18px;}
+.mo-sec{font-size:12px;font-weight:800;color:var(--navy);margin:12px 0 5px;display:flex;align-items:center;gap:5px;}
+.mo-sec:first-child{margin-top:0;}
+.mo-txt{font-size:11.5px;color:var(--txt);line-height:1.9;}
+.mo-fml{background:#f0f4f8;border-radius:8px;padding:11px 13px;font-size:11.5px;border-left:3px solid var(--navy);margin:7px 0;line-height:1.8;color:var(--navy-dk);}
+.mo-ref{background:#fffbeb;border-radius:7px;padding:9px 12px;font-size:11px;color:#78350f;border:1px solid #fde68a;margin-top:10px;line-height:1.85;}
+.mo-ref b{color:#1e40af;}
+
+/* ════ 반응형 태블릿 ════ */
+@media(max-width:1024px){
+  .hdr-top{padding:14px 16px 0;}
+  .hdr-right{font-size:10px;}
+  .hdr-right strong{font-size:12px;}
+  .sum-bar-inner{gap:12px;padding:0 16px;}
+  .main-body{padding:0 12px 130px;}
+}
+/* ════ 반응형 모바일 ════ */
+@media(max-width:640px){
+  .cb{padding:12px 12px;}
+  .main-body{padding:0 10px 130px;}
+  .mo-ov{padding:12px;}
+  .mo-box{max-height:calc(100vh - 24px);}
+  .fpg{grid-template-columns:repeat(2,1fr);}
+  .ha{gap:5px;}
+  .hbtn{padding:6px 10px;font-size:10.5px;}
+  /* 모바일 헤더 */
+  .hdr-top{padding:10px 12px 0;gap:8px;}
+  .hdr-eyebrow{display:none;}
+  .hdr-h1{font-size:14px;}
+  .hdr-right{display:none;}
+  .hdr-sub{font-size:10px;gap:4px;margin-top:4px;}
+  .hdr-manmin{font-size:10px;}
+  .hdr-tabs{padding:0 6px;margin-top:8px;}
+  .hdr-tab{font-size:10.5px;padding:7px 8px;gap:3px;}
+  /* 모바일 요약바 */
+  .sum-bar-inner{gap:8px;padding:0 12px;flex-wrap:wrap;}
+  .sum-chip{font-size:10.5px;}
+  /* 모바일 진행바 */
+  .prog-bar{gap:5px;padding:8px 10px;}
+  .ps-item span{display:none;}
+  /* 고정하중 테이블 모바일 — 자동계산·삭제 컬럼 압축 */
+  .dl-table{min-width:380px;}
+  .dl-table th:nth-child(5),.dl-table td:nth-child(5){display:none;} /* 자동계산 체크 숨김 */
+  /* 결과 패널 값 크기 */
+  .rval.lg{font-size:15px;}
+  /* 최종 패널 그리드 */
+  .fpg{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:400px){
+  .fpg{grid-template-columns:repeat(2,1fr);}
+  .hdr-tab .hdr-tn{display:none;}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const {useState,useEffect,useMemo,useCallback,useRef}=React;
+
+/* ══════════════════════════════════════
+   KDS 데이터 테이블
+══════════════════════════════════════ */
+// 지역별 기본정보 (풍속 V0, 지상설하중 Sg, 지진구역)
+const REGION_DATA={
+  "서울특별시":      {V0:26,Sg:0.5,zone:"I"},
+  "인천광역시":      {V0:26,Sg:0.5,zone:"I"},
+  "경기도":          {V0:26,Sg:0.5,zone:"I"},
+  "세종특별자치시":  {V0:24,Sg:0.5,zone:"I"},
+  "대전광역시":      {V0:24,Sg:0.5,zone:"I"},
+  "충청북도":        {V0:24,Sg:0.5,zone:"I"},
+  "충청남도":        {V0:26,Sg:0.5,zone:"I"},
+  "광주광역시":      {V0:24,Sg:0.5,zone:"I"},
+  "전라북도":        {V0:26,Sg:0.5,zone:"I"},
+  "전라남도(내륙)":  {V0:26,Sg:0.5,zone:"I"},
+  "전라남도(해안)":  {V0:30,Sg:0.5,zone:"I"},
+  "대구광역시":      {V0:26,Sg:0.5,zone:"I"},
+  "경상북도":        {V0:26,Sg:0.5,zone:"I"},
+  "부산광역시":      {V0:30,Sg:0.5,zone:"I"},
+  "울산광역시":      {V0:30,Sg:0.5,zone:"I"},
+  "경상남도":        {V0:28,Sg:0.5,zone:"I"},
+  "강원도(영서)":    {V0:24,Sg:0.5,zone:"I"},
+  "강원도(영동)":    {V0:30,Sg:1.0,zone:"I"},
+  "제주도":          {V0:40,Sg:1.5,zone:"II"},
+};
+
+// 기본등분포활하중 표 3.2-1 (KDS 41 12 00)
+const LL_TABLE=[
+  {cat:"주택",sub:"주거용 거실",       Lo:2.0},
+  {cat:"주택",sub:"공동주택 공용실",   Lo:5.0},
+  {cat:"병원",sub:"병실",              Lo:2.0},
+  {cat:"병원",sub:"수술실·공용실·실험실",Lo:3.0},
+  {cat:"병원",sub:"복도(1층 외)",      Lo:4.0},
+  {cat:"숙박",sub:"객실",              Lo:2.0},
+  {cat:"숙박",sub:"공용실",            Lo:5.0},
+  {cat:"사무실",sub:"일반 사무실",     Lo:2.5},
+  {cat:"사무실",sub:"특수용도 사무실", Lo:5.0},
+  {cat:"사무실",sub:"문서보관실",      Lo:5.0},
+  {cat:"사무실",sub:"복도(1층 외)",    Lo:4.0},
+  {cat:"학교",sub:"교실",              Lo:3.0},
+  {cat:"학교",sub:"일반 실험실",       Lo:3.0},
+  {cat:"학교",sub:"중량물 실험실",     Lo:5.0},
+  {cat:"학교",sub:"복도(1층 외)",      Lo:4.0},
+  {cat:"판매장",sub:"상점·백화점(1층)",Lo:5.0},
+  {cat:"판매장",sub:"상점·백화점(2층이상)",Lo:4.0},
+  {cat:"판매장",sub:"창고형 매장",     Lo:6.0},
+  {cat:"집회·유흥",sub:"복도",         Lo:5.0},
+  {cat:"집회·유흥",sub:"무대",         Lo:7.0},
+  {cat:"집회·유흥",sub:"식당",         Lo:5.0},
+  {cat:"집회·유흥",sub:"주방",         Lo:7.0},
+  {cat:"집회·유흥",sub:"극장·집회장(고정좌석)",Lo:4.0},
+  {cat:"집회·유흥",sub:"집회장(이동좌석)",Lo:5.0},
+  {cat:"집회·유흥",sub:"연회장·무도장",Lo:5.0},
+  {cat:"체육시설",sub:"바닥·옥외경기장",Lo:5.0},
+  {cat:"체육시설",sub:"스탠드(고정좌석)",Lo:4.0},
+  {cat:"체육시설",sub:"스탠드(이동좌석)",Lo:5.0},
+  {cat:"도서관",sub:"열람실",          Lo:3.0},
+  {cat:"도서관",sub:"서고",            Lo:7.5},
+  {cat:"도서관",sub:"복도(1층 외)",    Lo:4.0},
+  {cat:"주차장",sub:"옥내 30kN 이하",  Lo:3.0},
+  {cat:"주차장",sub:"옥외 30kN 이하",  Lo:5.0},
+  {cat:"주차장",sub:"30~90kN",         Lo:6.0},
+  {cat:"주차장",sub:"90~180kN",        Lo:12.0},
+  {cat:"창고",sub:"경량품",            Lo:6.0},
+  {cat:"창고",sub:"중량품",            Lo:12.0},
+  {cat:"공장",sub:"경공업",            Lo:6.0},
+  {cat:"공장",sub:"중공업",            Lo:12.0},
+  {cat:"지붕",sub:"점유 안 함(활하중)",Lo:1.0},
+  {cat:"지붕",sub:"산책로",            Lo:3.0},
+  {cat:"지붕",sub:"정원·집회",         Lo:5.0},
+  {cat:"지붕",sub:"헬리콥터 이착륙장",Lo:5.0},
+  {cat:"기계실",sub:"공조·전기·기계실",Lo:5.0},
+  {cat:"광장",sub:"옥외광장",          Lo:12.0},
+  {cat:"로비·복도",sub:"로비·1층 복도",Lo:5.0},
+  {cat:"계단",sub:"단독주택·2세대",    Lo:2.0},
+  {cat:"계단",sub:"기타",              Lo:5.0},
+];
+
+// 중요도계수 (KDS 41 12 00 표 4.3-3 / KDS 41 17 00 표 2.2-1)
+const IMPORTANCE={
+  "특": {Iw:1.1,Is:1.2,Ie:1.5, desc:"소방서·병원·피난·국가주요시설"},
+  "1":  {Iw:1.0,Is:1.1,Ie:1.2, desc:"공공청사·학교·교통시설·500인이상"},
+  "2":  {Iw:1.0,Is:1.0,Ie:1.0, desc:"일반 건축물 (기준)"},
+  "3":  {Iw:.95,Is:.8, Ie:1.0, desc:"농장·창고·임시시설"},
+};
+
+// 지표면조도구분 (KDS 41 12 00 5.1절)
+const EXPOSURE={
+  "A":{a:0.10,zb:5, Kz10:0.47, desc:"도심 — 10층 이상 고층건물 밀집 시가지"},
+  "B":{a:0.15,zb:5, Kz10:0.62, desc:"교외 — 단독주택·나무·저층건물 산재"},
+  "C":{a:0.20,zb:5, Kz10:0.80, desc:"기준 — 평탄·개활지 (기본지표면)"},
+  "D":{a:0.25,zb:5, Kz10:1.00, desc:"해안 — 해안선·광활한 호수 인접"},
+};
+
+// 지반종류 및 단주기증폭계수 (KDS 41 17 00 표 4.2-2)
+const SOIL={
+  "SA":{Fa:0.8, Fv:0.8, desc:"경암 — 전단파속도 VS30 > 1500 m/s"},
+  "SB":{Fa:1.0, Fv:1.0, desc:"보통암 — 760 < VS30 ≤ 1500 m/s"},
+  "SC":{Fa:1.2, Fv:1.7, desc:"매우 조밀한 토사·연암 — 360 < VS30 ≤ 760"},
+  "SD":{Fa:1.6, Fv:2.4, desc:"단단한 토사 — 180 < VS30 ≤ 360 m/s"},
+  "SE":{Fa:2.5, Fv:3.5, desc:"연약한 토사 — VS30 ≤ 180 m/s"},
+};
+
+// 지진력저항시스템 R·Ct·x (KDS 41 17 00 표 6.2-1 / 7.2.4)
+const STRUCT_SYS=[
+  {label:"RC 보통 모멘트골조",  R:3.0, Ct:0.0466, x:0.9},
+  {label:"RC 중간 모멘트골조",  R:5.0, Ct:0.0466, x:0.9},
+  {label:"RC 특수 모멘트골조",  R:8.0, Ct:0.0466, x:0.9},
+  {label:"철골 보통 모멘트골조",R:3.5, Ct:0.0724, x:0.8},
+  {label:"철골 중간 모멘트골조",R:4.5, Ct:0.0724, x:0.8},
+  {label:"철골 특수 모멘트골조",R:8.0, Ct:0.0724, x:0.8},
+  {label:"철골 편심·좌굴방지가새",R:7.0,Ct:0.0731,x:0.75},
+  {label:"RC 전단벽·기타골조",  R:5.0, Ct:0.0488, x:0.75},
+  {label:"철골 특수 전단벽",    R:6.5, Ct:0.0488, x:0.75},
+  {label:"조적조 내력벽",       R:2.5, Ct:0.0488, x:0.75},
+];
+
+// 재료 단위중량 (kN/m³) — KDS 41 12 00 부록
+const MAT=[
+  {g:"콘크리트",name:"보통 콘크리트",  w:24.0},
+  {g:"콘크리트",name:"철근콘크리트",   w:25.0},
+  {g:"콘크리트",name:"경량콘크리트",   w:17.0},
+  {g:"콘크리트",name:"ALC 블럭",       w:7.5},
+  {g:"금속",    name:"강재(철)",        w:77.0},
+  {g:"금속",    name:"알루미늄",        w:27.0},
+  {g:"석재",    name:"화강암",          w:27.0},
+  {g:"석재",    name:"대리석",          w:26.5},
+  {g:"마감",    name:"시멘트 모르타르", w:21.0},
+  {g:"마감",    name:"타일(도기)",       w:28.0},
+  {g:"마감",    name:"석고보드",        w:9.5},
+  {g:"마감",    name:"유리(판유리)",     w:25.6},
+  {g:"목재",    name:"소나무",          w:5.5},
+  {g:"목재",    name:"참나무",          w:8.0},
+  {g:"토사",    name:"자연 사질토",     w:18.0},
+  {g:"토사",    name:"자연 점성토",     w:19.0},
+  {g:"방수",    name:"아스팔트 방수층", w:22.0},
+  {g:"단열",    name:"비드법 단열재",   w:0.5},
+];
+
+/* ══ 유틸 ══ */
+const f2=v=>typeof v==='number'&&isFinite(v)?v.toFixed(2):'—';
+const f3=v=>typeof v==='number'&&isFinite(v)?v.toFixed(3):'—';
+const f4=v=>typeof v==='number'&&isFinite(v)?v.toFixed(4):'—';
+const n=v=>parseFloat(v)||0;
+
+/* ══ 가이드 모달 ══ */
+function GuideModal({onClose}){
+  const [t,setT]=useState(0);
+  const TABS=["사용법","고정하중","활하중","적설하중","풍하중","지진하중","하중조합","기준법규"];
+
+  // ESC 키 닫기
+  useEffect(()=>{
+    const handler=(e)=>{if(e.key==='Escape')onClose();};
+    document.addEventListener('keydown',handler);
+    return()=>document.removeEventListener('keydown',handler);
+  },[onClose]);
+
+  const body=[
+    /* 0. 사용법 */
+    <>
+      <div className="mo-sec">🏗️ 이 도구의 목적</div>
+      <div className="mo-txt">
+        <b>KDS 41 12 00 : 2022</b> 건축물 설계하중 기준을 적용하여<br/>
+        고정하중(D) · 활하중(L) · 적설하중(S) · 풍하중(W) · 지진하중(E)<br/>
+        5종 하중을 하나의 플로우로 산정하고, <b>LRFD 하중조합</b>까지 자동 출력합니다.<br/>
+        건축사의 인허가·VE 단계에서 필요한 <b>적정 하중 레벨 판단</b>에 특화되어 있습니다.
+      </div>
+      <div className="mo-sec">📋 순서</div>
+      <div className="mo-txt">
+        ① <b>프로젝트 정보</b> 입력 → 지역·중요도·규모 자동 연동<br/>
+        ② <b>고정하중</b> → 재료별 항목 구성 (기본값 제공)<br/>
+        ③ <b>활하중</b> → 용도별 표 3.2-1 자동 조회 + 저감 옵션<br/>
+        ④ <b>적설하중</b> → 지역 Sg 자동반영, Ce·Ct 선택<br/>
+        ⑤ <b>풍하중</b> → 지역 V₀ 자동반영, 조도 선택, 간편법/일반법<br/>
+        ⑥ <b>지진하중</b> → 고유주기 약산 + Cs 자동 산정<br/>
+        ⑦ <b>하중조합</b> → LRFD 7조합 자동 계산, 지배조합 강조<br/>
+        ⑧ <b>계산서 인쇄</b> → A4 출력용 서식 자동 생성
+      </div>
+      <div className="mo-ref">
+        ⚠️ 본 도구는 건축사 인허가·VE 단계의 적정성 검토용입니다. 정식 구조계산서는 반드시 건축구조기술사(책임구조기술자)가 확인·날인하여야 합니다.
+      </div>
+    </>,
+    /* 1. 고정하중 */
+    <>
+      <div className="mo-sec">🧱 고정하중 (D, Dead Load)</div>
+      <div className="mo-txt">건축구조물 자체 무게 + 생애주기 중 지속 작용하는 수직하중 (KDS 41 12 00 2절)</div>
+      <div className="mo-fml"><span className="eq">D = Σ (단위중량 × 두께)</span> [kN/m²]</div>
+      <div className="mo-sec">주요 재료 단위중량 (kN/m³)</div>
+      <div className="mo-txt">
+        <table style={{width:'100%',fontSize:11,borderCollapse:'collapse'}}>
+          <thead><tr style={{background:'#f0f4f8'}}>
+            <th style={{padding:'5px 8px',textAlign:'left',fontWeight:700}}>재료</th>
+            <th style={{padding:'5px 8px',textAlign:'right',fontWeight:700}}>kN/m³</th>
+          </tr></thead>
+          <tbody>{MAT.map((m,i)=>(
+            <tr key={i} style={{borderBottom:'1px solid #f0f4f8'}}>
+              <td style={{padding:'4px 8px'}}>{m.g} — {m.name}</td>
+              <td style={{padding:'4px 8px',textAlign:'right',fontWeight:700,color:'#1e3a5f'}}>{m.w}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </>,
+    /* 2. 활하중 */
+    <>
+      <div className="mo-sec">👥 활하중 (L, Live Load)</div>
+      <div className="mo-txt">점유·사용에 의해 발생하는 최대하중 (KDS 41 12 00 3절 표 3.2-1)</div>
+      <div className="mo-fml">
+        <span className="eq">기본등분포활하중 Lo</span> — 표 3.2-1 용도별<br/>
+        <span className="eq">저감: Lr = Lo×(0.25+4.57/√AT) ≥ 0.5Lo</span><br/>
+        AT = 부하면적 × KLL (영향면적) [m²]<br/>
+        KLL = 2 (슬래브·내부기둥) / 4 (외부기둥·보)
+      </div>
+      <div className="mo-sec">저감 적용 조건</div>
+      <div className="mo-txt">
+        AT × KLL ≥ 37.16 m² 인 경우 저감 가능<br/>
+        단, 지붕·주차장·공공집회(≥5 kN/m²)는 저감 불가<br/>
+        <b>저감 조건</b>: Lo ≤ 5.0 kN/m² (주차장·공공집회 제외) AND AT×KLL ≥ 37.16 m²
+      </div>
+    </>,
+    /* 3. 적설하중 */
+    <>
+      <div className="mo-sec">❄️ 평지붕 적설하중 (S)</div>
+      <div className="mo-fml">
+        <span className="eq">Sf = Cb · Ce · Ct · Is · Sg</span> [kN/m²]<br/>
+        Cb = 0.7 (기본지붕설하중계수)<br/>
+        Ce = 0.8~1.2 (노출계수, 표 4.3-1)<br/>
+        Ct = 1.0(난방) / 1.2(비난방), 표 4.3-2<br/>
+        Is = 중요도계수 (표 4.3-3)<br/>
+        Sg = 지역별 기상설하중 [kN/m²]
+      </div>
+      <div className="mo-sec">경사지붕 (KDS 41 12 00 4.4절)</div>
+      <div className="mo-fml">
+        <span className="eq">Sr = Sf · Cs</span><br/>
+        θ ≤ 30° : Cs = 1.0<br/>
+        30° &lt; θ &lt; 70° : Cs = 1.0 − (θ−30)/40 (선형감소)<br/>
+        θ ≥ 70° : Cs = 0
+      </div>
+    </>,
+    /* 4. 풍하중 */
+    <>
+      <div className="mo-sec">💨 속도압 및 설계풍압</div>
+      <div className="mo-fml">
+        <span className="eq">qH = 0.6×10⁻³ × Kz × Kzt × V₀² × Iw²</span> [kN/m²]<br/>
+        Kz = Kz10 × (H/10)^(2α) (풍속고도분포계수)<br/>
+        Kzt = 1.0 (일반지형, 지형계수)<br/>
+        V₀ = 기본풍속 [m/s] (지역별 표 5.5-1)<br/>
+        Iw = 풍하중 중요도계수
+      </div>
+      <div className="mo-sec">주골조 설계풍압 (간편법 5.15절)</div>
+      <div className="mo-fml">
+        <span className="eq">W = qH × G × Cf</span> [kN/m²]<br/>
+        G = 0.85 (가스트계수, 일반)<br/>
+        Cf = 풍력계수 (풍상 0.6 + 풍하 0.5 = 1.1 기준)<br/>
+        최소 설계풍압 ≥ 0.675 kN/m² (간편법 하한)
+      </div>
+      <div className="mo-sec">지역별 기본풍속 V₀ (대표값)</div>
+      <div className="mo-txt" style={{fontSize:11}}>
+        서울·경기·내륙 26 m/s / 충청·전라 24~26 m/s<br/>
+        부산·울산·강원영동 30 m/s / 제주 40 m/s
+      </div>
+    </>,
+    /* 5. 지진하중 */
+    <>
+      <div className="mo-sec">🌍 등가정적해석법 — 밑면전단력 (KDS 41 17 00 7.2절)</div>
+      <div className="mo-fml">
+        <span className="eq">V = Cs × W</span><br/>
+        <span className="eq">Cs = SDS / (R/Ie)</span><br/>
+        SDS = (2/3) × Fa × Ss<br/>
+        Ss = 2.5 × Z (단주기 스펙트럼, g)<br/>
+        Z = 0.11g (구역 I) / 0.07g (구역 II)
+      </div>
+      <div className="mo-sec">고유주기 약산식 (7.2.4)</div>
+      <div className="mo-fml">
+        <span className="eq">Ta = Ct × hn^x</span><br/>
+        RC 모멘트골조: Ct=0.0466, x=0.9<br/>
+        철골 모멘트골조: Ct=0.0724, x=0.8<br/>
+        RC 전단벽·기타: Ct=0.0488, x=0.75<br/>
+        hn = 지상 전체높이 [m]
+      </div>
+      <div className="mo-sec">내진중량 W</div>
+      <div className="mo-txt">고정하중 + 활하중의 50% + 영구설비 + (적설하중이 1.5초과시 20%)</div>
+    </>,
+    /* 6. 하중조합 */
+    <>
+      <div className="mo-sec">⚖️ LRFD 강도설계법 하중조합 (KDS 41 12 00 식 1.7-1~7)</div>
+      <div className="mo-fml">
+        ① 1.4D<br/>
+        ② 1.2D + 1.6L + 0.5(Lr 또는 S 또는 R)<br/>
+        ③ 1.2D + 1.6(Lr 또는 S 또는 R) + (L 또는 0.5W)<br/>
+        ④ 1.2D + 1.0W + L + 0.5(Lr 또는 S 또는 R)<br/>
+        ⑤ 0.9D + 1.0W<br/>
+        ⑥ 1.2D + 1.0E + L + 0.2S<br/>
+        ⑦ 0.9D + 1.0E<br/>
+        <span style={{fontSize:10,color:'#64748b'}}>본 도구: S(적설하중) 채택, ③은 L·0.5W 각각 계산</span>
+      </div>
+      <div className="mo-sec">🔑 핵심 포인트</div>
+      <div className="mo-txt">
+        • 7개 조합 중 <b>최댓값 → 설계지배하중조합</b><br/>
+        • Lo ≤ 5.0 kN/m² (주차장·공공집회 제외) → 조합②③④에서 L 계수 0.5 감소 가능<br/>
+        • E는 ρQE ± 0.2SDS·D (단, 간편 산정 시 E=Cs·D 근사 적용)
+      </div>
+    </>,
+    /* 7. 기준법규 */
+    <>
+      <div className="mo-sec">📚 적용 기준</div>
+      <div className="mo-ref">
+        <b>KDS 41 12 00 : 2022</b> — 건축물 설계하중 (2022.10.11 개정)<br/>
+        소관: 국토교통부 건축안전과 | 작성: 대한건축학회<br/><br/>
+        <b>KDS 41 17 00 : 2022</b> — 건축물 내진설계기준 (2022.10.11 개정)<br/><br/>
+        <b>KDS 41 10 05 : 2019</b> — 내진설계 공통사항<br/><br/>
+        <b>KDS 41 00 00</b> — 건축구조기준 (총칙)<br/><br/>
+        <b>건축법 시행령 제32조</b> — 구조 안전의 확인<br/>
+        (2층이상 연면적200m²이상 등 구조계산 의무)
+      </div>
+      <div className="mo-sec">⚠️ 면책사항</div>
+      <div className="mo-txt">
+        본 도구는 건축사 VE·인허가 단계 적정성 검토용이며, 최종 구조 안전성 확인은 건축구조기술사 등 책임구조기술자가 수행하여야 합니다.
+        모든 계산 결과는 참고용이며, 법적 효력이 있는 구조계산서를 대체하지 않습니다.
+      </div>
+    </>,
+  ];
+
+  return(
+    <div className="mo-ov" onClick={onClose}>
+      <div className="mo-box" onClick={e=>e.stopPropagation()}>
+        <div className="mo-hd">
+          <div className="mo-hdr">
+            <div>
+              <div style={{fontSize:14,fontWeight:900}}>📋 사용 가이드 · 계산식 해설</div>
+              <div style={{fontSize:10,opacity:.72,marginTop:2}}>KDS 41 12 00 : 2022 / KDS 41 17 00 : 2022</div>
+            </div>
+            <button className="mo-cls" onClick={onClose}>✕</button>
+          </div>
+          <div className="mo-tabs">
+            {TABS.map((lb,i)=>(
+              <button key={i} className={`mo-tab${t===i?' on':''}`} onClick={()=>setT(i)}>{lb}</button>
+            ))}
+          </div>
+        </div>
+        <div className="mo-body">{body[t]}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   STEP 0 — 프로젝트 정보
+══════════════════════════════════════ */
+function StepProject({info,setInfo}){
+  const rd=REGION_DATA[info.region||'서울특별시']||{};
+  const imp=IMPORTANCE[info.importance||'2']||{};
+  return(
+    <div className="card">
+      <div className="ch"><span className="ch-icon">🏢</span><div><div className="ch-t">프로젝트 기본 정보</div><div className="ch-s">지역·규모·중요도를 입력하면 이후 단계에 자동 반영됩니다</div></div></div>
+      <div className="cb">
+        <div className="g2" style={{marginBottom:12}}>
+          <div><div className="fl">프로젝트명</div><input className="fi" placeholder="예) ○○빌딩 신축공사" value={info.name||''} onChange={e=>setInfo({...info,name:e.target.value})}/></div>
+          <div><div className="fl">건축물 용도</div><input className="fi" placeholder="예) 업무시설 (근린생활시설)" value={info.usage||''} onChange={e=>setInfo({...info,usage:e.target.value})}/></div>
+        </div>
+        <div className="g4" style={{marginBottom:12}}>
+          <div>
+            <div className="fl">지역 선택</div>
+            <select className="fs" value={info.region||'서울특별시'} onChange={e=>setInfo({...info,region:e.target.value})}>
+              {Object.keys(REGION_DATA).map(r=><option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+          <div>
+            <div className="fl">중요도 등급</div>
+            <select className="fs" value={info.importance||'2'} onChange={e=>setInfo({...info,importance:e.target.value})}>
+              {Object.entries(IMPORTANCE).map(([k,v])=><option key={k} value={k}>{k}등급 — {v.desc.split('·')[0]}</option>)}
+            </select>
+          </div>
+          <div><div className="fl">건물 높이 <span className="fu">m</span></div><input className="fi" type="number" min="3" max="300" step="0.5" placeholder="12.0" value={info.height||''} onChange={e=>setInfo({...info,height:e.target.value})}/></div>
+          <div><div className="fl">지상 층수 <span className="fu">층</span></div><input className="fi" type="number" min="1" max="100" placeholder="3" value={info.floors||''} onChange={e=>setInfo({...info,floors:e.target.value})}/></div>
+        </div>
+        <div className="g4">
+          <div><div className="fl">폭 B <span className="fu">m</span></div><input className="fi" type="number" min="1" step="0.5" placeholder="10.0" value={info.width||''} onChange={e=>setInfo({...info,width:e.target.value})}/></div>
+          <div><div className="fl">깊이 D <span className="fu">m</span></div><input className="fi" type="number" min="1" step="0.5" placeholder="15.0" value={info.depth||''} onChange={e=>setInfo({...info,depth:e.target.value})}/></div>
+          <div><div className="fl">바닥면적(1층) <span className="fu">m²</span></div><input className="fi" type="number" min="1" placeholder="150" value={info.area||''} onChange={e=>setInfo({...info,area:e.target.value})}/></div>
+          <div><div className="fl">지붕 경사각 <span className="fu">°</span></div><input className="fi" type="number" min="0" max="70" step="1" placeholder="5" value={info.roofAngle||''} onChange={e=>setInfo({...info,roofAngle:e.target.value})}/></div>
+        </div>
+        {/* 자동연동 확인 */}
+        <div className="gbox" style={{marginTop:12}}>
+          <div style={{fontWeight:700,marginBottom:6,fontSize:12,display:'flex',alignItems:'center',gap:6}}>
+            📍 자동 연동 정보
+            <span style={{fontSize:10,fontWeight:500,color:'#15803d',opacity:.8}}>— 지역·중요도·규모 변경 시 적설·풍·지진하중에 즉시 반영됩니다</span>
+          </div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+            <span className="tag bl">🌬️ V₀ = {rd.V0||26} m/s</span>
+            <span className="tag bl">❄️ Sg = {rd.Sg||0.5} kN/m²</span>
+            <span className="tag rd">🌍 지진구역 {rd.zone||'I'} (Z={rd.zone==='II'?'0.07':'0.11'}g)</span>
+            <span className="tag am">⭐ 중요도 {info.importance||'2'}등급</span>
+            <span className="tag am">Iw={imp.Iw||1.0} / Is={imp.Is||1.0} / Ie={imp.Ie||1.0}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   STEP 1 — 고정하중
+══════════════════════════════════════ */
+const DEFAULT_DL=[
+  {name:'슬래브 자중',     mat:'철근콘크리트',   w:25.0, t:0.18, calc:true, use:true},
+  {name:'마감층 (모르타르)',mat:'시멘트 모르타르', w:21.0, t:0.03, calc:true, use:true},
+  {name:'마감층 (타일)',    mat:'타일(도기)',      w:28.0, t:0.01, calc:true, use:true},
+  {name:'칸막이 벽체',     mat:'',               w:1.0,  t:1,    calc:false,use:true},
+  {name:'천장 마감 + 설비',mat:'',               w:0.35, t:1,    calc:false,use:true},
+];
+
+function StepDead({dead,setDead}){
+  const [items,setItems]=useState(dead.items&&dead.items.length?dead.items:[...DEFAULT_DL.map(x=>({...x}))]);
+
+  const update=(idx,key,val)=>{
+    const ni=items.map((it,i)=>{
+      if(i!==idx)return it;
+      const nu={...it,[key]:val};
+      if((key==='w'||key==='t')&&nu.calc){nu.kn=parseFloat((parseFloat(nu.w||0)*parseFloat(nu.t||0)).toFixed(3));}
+      return nu;
+    });
+    setItems(ni);
+  };
+
+  const total=useMemo(()=>{
+    return items.filter(it=>it.use).reduce((s,it)=>{
+      const kn=it.calc?n(it.w)*n(it.t):n(it.w);
+      return s+kn;
+    },0);
+  },[items]);
+
+  const itemsRef=React.useRef(items);
+  useEffect(()=>{itemsRef.current=items;},[items]);
+
+  useEffect(()=>{
+    // useMemo(total) 변경 시에만 실행 — items는 ref로 최신값 참조
+    setDead({items:itemsRef.current,total:parseFloat(total.toFixed(3))});
+  },[total]); // items 의존 제거 → 무한루프 방지
+
+  const addRow=()=>setItems([...items,{name:'',mat:'',w:'',t:1,calc:false,use:true}]);
+  const removeRow=idx=>setItems(items.filter((_,i)=>i!==idx));
+
+  const renderKn=(it)=>{
+    const kn=it.calc?n(it.w)*n(it.t):n(it.w);
+    return it.use&&kn>0?kn.toFixed(3):'—';
+  };
+
+  return(
+    <div className="card">
+      <div className="ch"><span className="ch-icon">🧱</span><div><div className="ch-t">고정하중 (D) 산정</div><div className="ch-s">KDS 41 12 00 2절 — 단위면적당 층 고정하중 합산</div></div></div>
+      <div className="cb">
+        <div className="dl-wrap">
+          <table className="dl-table">
+            <thead>
+              <tr>
+                <th style={{width:'28%'}}>항목명</th>
+                <th style={{width:'16%'}}>재료</th>
+                <th style={{width:'10%'}}>단위중량<br/>(kN/m³)</th>
+                <th style={{width:'10%'}}>두께<br/>(m)</th>
+                <th style={{width:'9%',textAlign:'center'}}>자동계산</th>
+                <th style={{width:'12%'}}>하중<br/>(kN/m²)</th>
+                <th style={{width:'8%',textAlign:'center'}}>적용</th>
+                <th style={{width:'7%',textAlign:'center'}}>삭제</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((it,idx)=>(
+                <tr key={idx} className={!it.use?'disabled':''} style={{opacity:it.use?1:.4}}>
+                  <td><input className="fi" style={{padding:'5px 7px',fontSize:11.5}} value={it.name} onChange={e=>update(idx,'name',e.target.value)} placeholder="항목명"/></td>
+                  <td>
+                    <select className="fs" style={{padding:'5px 20px 5px 6px',fontSize:11}} value={it.mat||''} onChange={e=>{
+                      const found=MAT.find(m=>m.name===e.target.value);
+                      update(idx,'mat',e.target.value);
+                      if(found){update(idx,'w',found.w);}
+                    }}>
+                      <option value="">직접입력</option>
+                      {MAT.map(m=><option key={m.name} value={m.name}>{m.name}</option>)}
+                    </select>
+                  </td>
+                  <td><input className="fi" style={{padding:'5px 6px',fontSize:12,textAlign:'right'}} type="number" step="0.01" value={it.w||''} onChange={e=>update(idx,'w',e.target.value)}/></td>
+                  <td>
+                    {it.calc
+                      ?<input className="fi" style={{padding:'5px 6px',fontSize:12,textAlign:'right'}} type="number" step="0.001" value={it.t||''} onChange={e=>update(idx,'t',e.target.value)}/>
+                      :<span style={{fontSize:11,color:'#94a3b8',padding:'0 4px'}}>—</span>
+                    }
+                  </td>
+                  <td style={{textAlign:'center'}}><input type="checkbox" checked={!!it.calc} onChange={e=>update(idx,'calc',e.target.checked)} style={{cursor:'pointer',width:14,height:14}}/></td>
+                  <td style={{textAlign:'right',fontWeight:700,fontFamily:"'Noto Sans Mono',monospace",color:'#1e3a5f'}}>{renderKn(it)}</td>
+                  <td style={{textAlign:'center'}}><input type="checkbox" checked={!!it.use} onChange={e=>update(idx,'use',e.target.checked)} style={{cursor:'pointer',width:14,height:14}}/></td>
+                  <td style={{textAlign:'center'}}>
+                    <button onClick={()=>removeRow(idx)} style={{background:'#fee2e2',border:'none',borderRadius:5,color:'#dc2626',width:24,height:24,cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',margin:'auto'}}>×</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <button onClick={addRow} style={{marginTop:8,background:'#eff6ff',border:'1.5px dashed #93c5fd',borderRadius:8,padding:'7px 0',fontSize:12,color:'#1d4ed8',fontWeight:700,cursor:'pointer',width:'100%'}}>+ 항목 추가</button>
+
+        <div className="rbox">
+          <div className="rrow"><span className="rlbl">적용 항목 수</span><span style={{fontSize:12,color:'#a7f3d0'}}>{items.filter(it=>it.use).length} 개</span></div>
+          <div className="rrow"><span className="rlbl">고정하중 합계 <b>D</b></span><span className="rval lg">{f2(total)} kN/m²</span></div>
+        </div>
+
+        <div className="ibox" style={{marginTop:10}}>
+          <b className="law">KDS 41 12 00 2.2</b> — 고정하중은 각 부분의 실상에 따라 사용재료의 밀도·단위체적중량을 적용하여 산정. 칸막이 벽체가 미정인 경우 최소 <b>1.0 kN/m²</b> 이상 적용.<br/>
+          <b>자동계산</b> 체크 시 : 하중(kN/m²) = 단위중량(kN/m³) × 두께(m)
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   STEP 2 — 활하중
+══════════════════════════════════════ */
+function StepLive({live,setLive}){
+  const cats=[...new Set(LL_TABLE.map(x=>x.cat))];
+  const subs=LL_TABLE.filter(x=>x.cat===(live.cat||'사무실'));
+  const foundItem=subs.find(x=>x.sub===(live.sub||'일반 사무실'))||subs[0]||{Lo:2.5};
+  const Lo=live.custom?n(live.customVal):foundItem.Lo;
+  const AT=n(live.AT);
+  const KLL=n(live.KLL)||2;
+  const ATi=AT*KLL;
+  const canReduce=ATi>=37.16&&Lo<=5.0;
+  const Lr=canReduce?Math.max(Lo*(0.25+4.57/Math.sqrt(ATi)),0.5*Lo):Lo;
+  const Lval=live.reduceApply&&canReduce?Lr:Lo;
+
+  useEffect(()=>{
+    const foundI=LL_TABLE.filter(x=>x.cat===(live.cat||'사무실')).find(x=>x.sub===(live.sub||'일반 사무실'))||{Lo:2.5};
+    const currentLo=live.custom?n(live.customVal):foundI.Lo;
+    const currentAT=n(live.AT);const currentKLL=n(live.KLL)||2;
+    const currentATi=currentAT*currentKLL;
+    const currentCanReduce=currentATi>=37.16&&currentLo<=5.0;
+    const currentLr=currentCanReduce?Math.max(currentLo*(0.25+4.57/Math.sqrt(currentATi)),0.5*currentLo):currentLo;
+    const currentFinal=live.reduceApply&&currentCanReduce?currentLr:currentLo;
+    setLive(l=>({...l,Lo:currentLo,Lr:parseFloat(currentLr.toFixed(3)),final:parseFloat(currentFinal.toFixed(3))}));
+  },[live.cat,live.sub,live.custom,live.customVal,live.AT,live.KLL,live.reduceApply]);
+
+  return(
+    <div className="card">
+      <div className="ch"><span className="ch-icon">👥</span><div><div className="ch-t">활하중 (L) 산정</div><div className="ch-s">KDS 41 12 00 3절 — 표 3.2-1 기본등분포활하중 + 저감</div></div></div>
+      <div className="cb">
+        <div className="g2" style={{marginBottom:12}}>
+          <div>
+            <div className="fl">용도 대분류</div>
+            <select className="fs" value={live.cat||'사무실'} onChange={e=>setLive({...live,cat:e.target.value,sub:''})}>
+              {cats.map(c=><option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <div className="fl">용도 세부 (표 3.2-1)</div>
+            <select className="fs" value={live.sub||''} onChange={e=>setLive({...live,sub:e.target.value})} disabled={!!live.custom}>
+              {subs.map(s=><option key={s.sub} value={s.sub}>{s.sub} — {s.Lo} kN/m²</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div style={{background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:8,padding:'11px 13px',marginBottom:12}}>
+          <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:7}}>
+            <input type="checkbox" id="customLL" checked={!!live.custom} onChange={e=>setLive({...live,custom:e.target.checked})} style={{cursor:'pointer',width:14,height:14}}/>
+            <label htmlFor="customLL" style={{fontSize:12,fontWeight:700,cursor:'pointer'}}>직접 입력 (표 미적용)</label>
+          </div>
+          {live.custom&&(
+            <input className="fi" type="number" step="0.1" min="0" placeholder="kN/m² 직접 입력" value={live.customVal||''} onChange={e=>setLive({...live,customVal:e.target.value})} style={{maxWidth:200}}/>
+          )}
+        </div>
+
+        <div style={{background:'#f0f4f8',border:'1px solid #d1dbe8',borderRadius:8,padding:'11px 13px'}}>
+          <div style={{fontWeight:800,fontSize:12,color:'#1e3a5f',marginBottom:8}}>📉 활하중 저감 (KDS 41 12 00 3.2.3)</div>
+          <div className="g3" style={{gap:10}}>
+            <div>
+              <div className="fl">부하면적 AT <span className="fu">m²</span></div>
+              <input className="fi" type="number" min="0" step="1" placeholder="80" value={live.AT||''} onChange={e=>setLive({...live,AT:e.target.value})}/>
+            </div>
+            <div>
+              <div className="fl">활하중저감계수 KLL</div>
+              <select className="fs" value={live.KLL||'2'} onChange={e=>setLive({...live,KLL:e.target.value})}>
+                <option value="2">KLL = 2 (슬래브·내부기둥)</option>
+                <option value="4">KLL = 4 (외부기둥·보)</option>
+                <option value="1">KLL = 1 (기타)</option>
+              </select>
+            </div>
+            <div style={{display:'flex',alignItems:'flex-end',paddingBottom:2}}>
+              <label style={{display:'flex',alignItems:'center',gap:6,fontSize:12,fontWeight:700,cursor:'pointer'}}>
+                <input type="checkbox" checked={!!live.reduceApply} onChange={e=>setLive({...live,reduceApply:e.target.checked})} disabled={!canReduce} style={{cursor:'pointer',width:14,height:14}}/>
+                저감 적용
+                {!canReduce&&AT>0&&<span className="vbadge warn" style={{marginLeft:4}}>조건 미달</span>}
+                {canReduce&&<span className="vbadge ok" style={{marginLeft:4}}>가능</span>}
+              </label>
+            </div>
+          </div>
+          {AT>0&&(
+            <div style={{marginTop:8,fontSize:11,color:'#475569'}}>
+              AT×KLL = <b>{ATi.toFixed(1)}</b> m²
+              {canReduce&&<> &nbsp;|&nbsp; 저감계수 = 0.25+4.57/√{ATi.toFixed(1)} = <b>{(0.25+4.57/Math.sqrt(ATi)).toFixed(3)}</b></>}
+            </div>
+          )}
+        </div>
+
+        <div className="rbox">
+          <div className="rrow"><span className="rlbl">기본등분포활하중 Lo</span><span className="rval">{f2(Lo)} kN/m²</span></div>
+          {live.reduceApply&&canReduce&&<div className="rrow"><span className="rlbl">저감 활하중 Lr</span><span className="rval">{f2(Lr)} kN/m²</span></div>}
+          <div className="rrow"><span className="rlbl">적용 활하중 <b>L</b></span><span className="rval lg">{f2(Lval)} kN/m²</span></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   STEP 3 — 적설하중
+══════════════════════════════════════ */
+function StepSnow({snow,setSnow,info}){
+  const rd=REGION_DATA[info.region||'서울특별시']||{Sg:0.5};
+  const imp=IMPORTANCE[info.importance||'2']||{Is:1.0};
+  // 렌더용 계산값 (상태에서 읽거나 즉시 계산)
+  const Sg=rd.Sg;
+  const Is=imp.Is;
+  const Cb=0.7;
+  const Ce=n(snow.Ce)||1.0;
+  const Ct=n(snow.Ct)||1.0;
+  const Sf=Cb*Ce*Ct*Is*Sg;
+  const theta=n(info.roofAngle)||0;
+  const Cs=theta<=30?1.0:theta>=70?0:1.0-(theta-30)/40;
+  const Sr=Sf*Cs;
+  const rawFinal=theta>0?Sr:Sf;
+  const minS=Sg>1.0?1.0*Is:Sg*Is;
+  const final=Math.max(rawFinal,minS);
+
+  useEffect(()=>{
+    const rdLocal=REGION_DATA[info.region||'서울특별시']||{Sg:0.5};
+    const impLocal=IMPORTANCE[info.importance||'2']||{Is:1.0};
+    const SgL=rdLocal.Sg; const IsL=impLocal.Is;
+    const CbL=0.7; const CeL=n(snow.Ce)||1.0; const CtL=n(snow.Ct)||1.0;
+    const SfL=CbL*CeL*CtL*IsL*SgL;
+    const thetaL=n(info.roofAngle)||0;
+    const CsL=thetaL<=30?1.0:thetaL>=70?0:1.0-(thetaL-30)/40;
+    const SrL=SfL*CsL;
+    const rawFinal=thetaL>0?SrL:SfL;
+    // KDS 41 12 00 4.3.5: 최소설하중 적용
+    const minSL=SgL>1.0?1.0*IsL:SgL*IsL;
+    const finalWithMin=Math.max(rawFinal,minSL);
+    setSnow(s=>({...s,Sg:SgL,Is:IsL,Cb:CbL,Ce:CeL,Ct:CtL,
+      Sf:parseFloat(SfL.toFixed(4)),Sr:parseFloat(SrL.toFixed(4)),
+      Cs:parseFloat(CsL.toFixed(3)),
+      rawFinal:parseFloat(rawFinal.toFixed(4)),
+      minS:parseFloat(minSL.toFixed(4)),
+      final:parseFloat(finalWithMin.toFixed(4))}));
+  },[snow.Ce,snow.Ct,info.region,info.importance,info.roofAngle]);
+
+  return(
+    <div className="card">
+      <div className="ch"><span className="ch-icon">❄️</span><div><div className="ch-t">적설하중 (S) 산정</div><div className="ch-s">KDS 41 12 00 4절 — 평지붕 및 경사지붕 설하중 산정</div></div></div>
+      <div className="cb">
+        <div className="gbox" style={{marginBottom:12}}>
+          <div style={{fontWeight:800,fontSize:12,marginBottom:6}}>자동 반영 값</div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+            <span className="tag bl">Sg = {Sg} kN/m² ({info.region||'지역'})</span>
+            <span className="tag bl">Is = {Is} (중요도 {info.importance||'2'})</span>
+            <span className="tag bl">Cb = 0.7 (일반 기본값)</span>
+            {theta>0&&<span className="tag am">지붕경사 θ = {theta}° → Cs = {Cs.toFixed(3)}</span>}
+          </div>
+        </div>
+
+        <div className="g2">
+          <div>
+            <div className="fl">노출계수 Ce (표 4.3-1)</div>
+            <select className="fs" value={snow.Ce||'1.0'} onChange={e=>setSnow({...snow,Ce:e.target.value})}>
+              <option value="0.8">0.8 — 모든 방향 노출·강풍지역</option>
+              <option value="0.9">0.9 — 일부 바람막이·강풍 지역</option>
+              <option value="1.0">1.0 — 감소 기대불가 (기준 C)</option>
+              <option value="1.1">1.1 — 바람 영향 적음·바람막이</option>
+              <option value="1.2">1.2 — 조밀한 침엽수림 내부</option>
+            </select>
+          </div>
+          <div>
+            <div className="fl">온도계수 Ct (표 4.3-2)</div>
+            <select className="fs" value={snow.Ct||'1.0'} onChange={e=>setSnow({...snow,Ct:e.target.value})}>
+              <option value="1.0">1.0 — 난방구조물 (설하중 제어)</option>
+              <option value="1.2">1.2 — 비난방구조물 (비제어)</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="fbox" style={{marginTop:10}}>
+          Sf = Cb × Ce × Ct × Is × Sg<br/>
+          &nbsp;&nbsp;&nbsp; = {Cb} × {Ce} × {Ct} × {Is} × {Sg} = <b>{f3(Sf)} kN/m²</b>
+          {theta>0&&<><br/>Sr = Sf × Cs = {f3(Sf)} × {Cs.toFixed(3)} = <b>{f3(Sr)} kN/m²</b></>}
+        </div>
+
+        <div className="rbox">
+          <div className="rrow"><span className="rlbl">평지붕설하중 Sf</span><span className="rval">{f3(Sf)} kN/m²</span></div>
+          {theta>0&&<><div className="rrow"><span className="rlbl">경사지붕계수 Cs (θ={theta}°)</span><span className="rval">{Cs.toFixed(3)}</span></div><div className="rrow"><span className="rlbl">경사지붕설하중 Sr = Sf×Cs</span><span className="rval">{f3(Sr)} kN/m²</span></div></>}
+          <div className="rrow">
+            <span className="rlbl">최소설하중 (KDS 4.3.5)</span>
+            <span className="rval" style={{fontSize:11}}>{f3(minS)} kN/m²</span>
+          </div>
+          <div className="rrow">
+            <span className="rlbl">최소값 검토</span>
+            <span className={`rval ${final<minS?'warn':''}`} style={{fontSize:11}}>
+              {f3(final)} {final>=minS?'≥':'<'} {f3(minS)} {final>=minS?'✓ OK':'⚠ → 최소값 적용'}
+            </span>
+          </div>
+          <div className="rrow"><span className="rlbl">적용 설하중 <b>S</b> (하중조합 사용값)</span><span className="rval lg">{f3(Math.max(final,minS))} kN/m²</span></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   STEP 4 — 풍하중
+══════════════════════════════════════ */
+function StepWind({wind,setWind,info}){
+  const rd=REGION_DATA[info.region||'서울특별시']||{V0:26};
+  const imp=IMPORTANCE[info.importance||'2']||{Iw:1.0};
+  const V0=rd.V0;
+  const Iw=imp.Iw;
+  const H=n(info.height)||12;
+  const B=n(info.width)||10;
+  const expKey=wind.exposure||'C';
+  const exp=EXPOSURE[expKey];
+  // 풍속고도분포계수 Kz = Kz10 × (H/10)^(2α)
+  const Kz_raw=exp.Kz10*Math.pow(Math.max(H,exp.zb)/10,2*exp.a);
+  const Kz=Math.min(Kz_raw,2.5);
+  const Kzt=1.0;
+  // 속도압 qH [kN/m²]
+  const qH=0.6e-3*Kz*Kzt*V0*V0*Iw*Iw;
+  const G=0.85;
+  const Cf=1.1; // 풍상 0.6 + 풍하 0.5
+  const W_raw=qH*G*Cf;
+  const W_min=0.675; // 최소설계풍압 (간편법 5.15절)
+  const W=Math.max(W_raw,W_min);
+  const Af=H*B;
+  const Fw=W*Af;
+
+  useEffect(()=>{setWind(w=>({...w,V0,Iw,Kz:parseFloat(Kz.toFixed(4)),qH:parseFloat(qH.toFixed(4)),W_raw:parseFloat(W_raw.toFixed(4)),final:parseFloat(W.toFixed(4)),Fw:parseFloat(Fw.toFixed(2))}));},[wind.exposure,info.region,info.importance,info.height,info.width]);
+
+  return(
+    <div className="card">
+      <div className="ch"><span className="ch-icon">💨</span><div><div className="ch-t">풍하중 (W) 산정</div><div className="ch-s">KDS 41 12 00 5절 — 주골조 설계용 수평풍하중 (간편법 적용)</div></div></div>
+      <div className="cb">
+        <div className="gbox" style={{marginBottom:12}}>
+          <div style={{fontWeight:800,fontSize:12,marginBottom:6}}>자동 반영 값</div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+            <span className="tag bl">V₀ = {V0} m/s ({info.region||'지역'})</span>
+            <span className="tag bl">Iw = {Iw} (중요도 {info.importance||'2'})</span>
+            <span className="tag bl">H = {H} m</span>
+            <span className="tag bl">B = {B} m</span>
+          </div>
+        </div>
+        <div className="g2">
+          <div>
+            <div className="fl">지표면조도구분</div>
+            <select className="fs" value={expKey} onChange={e=>setWind({...wind,exposure:e.target.value})}>
+              {Object.entries(EXPOSURE).map(([k,v])=><option key={k} value={k}>{k} — {v.desc}</option>)}
+            </select>
+          </div>
+          <div>
+            <div className="fl">지형 조건</div>
+            <select className="fs" value={wind.terrain||'일반'} onChange={e=>setWind({...wind,terrain:e.target.value})}>
+              <option value="일반">일반 지형 (Kzt=1.0)</option>
+              <option value="해안">해안·평탄지 (Kzt=1.0, Cf환경계수 2.0)</option>
+              <option value="언덕">언덕·산정 인근 (Kzt 별도 계산)</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="fbox" style={{marginTop:10}}>
+          Kz = {exp.Kz10} × ({H}/{10})^(2×{exp.a}) = <b>{f4(Kz)}</b><br/>
+          qH = 0.6×10⁻³ × {f4(Kz)} × {Kzt} × {V0}² × {Iw}² = <b>{f4(qH)} kN/m²</b><br/>
+          W = qH × G × Cf = {f4(qH)} × {G} × {Cf} = <b>{f4(W_raw)} kN/m²</b>
+          {W_raw<W_min&&<><br/><span style={{color:'var(--red)'}}>⚠ 간편법 최소값 {W_min} kN/m² 적용</span></>}
+        </div>
+
+        <div className="rbox">
+          <div className="rrow"><span className="rlbl">풍속고도분포계수 Kz (H={H}m)</span><span className="rval">{f4(Kz)}</span></div>
+          <div className="rrow"><span className="rlbl">속도압 qH</span><span className="rval">{f4(qH)} kN/m²</span></div>
+          <div className="rrow"><span className="rlbl">설계 등가풍압 <b>W</b></span><span className="rval lg">{f4(W)} kN/m²</span></div>
+          <div className="rrow"><span className="rlbl">수풍면적 Af = H×B</span><span className="rval">{Af.toFixed(1)} m²</span></div>
+          <div className="rrow"><span className="rlbl">총 수평풍력 Fw = W×Af</span><span className="rval">{f2(Fw)} kN</span></div>
+        </div>
+
+        <div className="ibox" style={{marginTop:10}}>
+          <b className="law">KDS 41 12 00 5.5·5.15</b> — G=0.85(가스트계수), Cf=1.1(풍력계수: 풍상0.6+풍하0.5), Kzt=1.0(일반지형). 최소풍압 0.675 kN/m² 적용.<br/>
+          정밀계산 필요 시 : 5.2~5.9절 가스트영향계수·피크풍압계수 방법 적용.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   STEP 5 — 지진하중
+══════════════════════════════════════ */
+function StepSeismic({seis,setSeis,info,dead,live}){
+  const rd=REGION_DATA[info.region||'서울특별시']||{zone:'I'};
+  const imp=IMPORTANCE[info.importance||'2']||{Ie:1.0};
+  const Z=rd.zone==='II'?0.07:0.11;
+  const Ie=imp.Ie;
+  const sysIdx=n(seis.sysIdx)||0;
+  const sys=STRUCT_SYS[sysIdx]||STRUCT_SYS[0];
+  const R=sys.R;
+  const soilKey=seis.soilType||'SC';
+  const soil=SOIL[soilKey];
+  const Fa=soil.Fa;
+  const hn=n(info.height)||12;
+
+  // 고유주기 Ta = Ct × hn^x (약산식 7.2.4)
+  const Ta=sys.Ct*Math.pow(hn,sys.x);
+
+  // 설계스펙트럼 계수
+  const Ss=2.5*Z;   // 단주기 스펙트럼가속도 (기반암 기준)
+  const S1=1.0*Z;   // 1초 스펙트럼 (근사)
+  const Fv=soil.Fv;
+  const SMS=Fa*Ss;
+  const SM1=Fv*S1;
+  const SDS=(2/3)*SMS;
+  const SD1=(2/3)*SM1;
+
+  // 고유주기에 따른 전이구간 판단
+  const Ts=SD1/SDS;
+  const T0=0.2*Ts;
+
+  // 지진응답계수 Cs (7.2-2~5)
+  let Cs_calc=SDS/(R/Ie);
+  if(Ta>Ts)Cs_calc=Math.min(Cs_calc,SD1/(Ta*(R/Ie)));
+  if(Ta>4.0)Cs_calc=Math.min(Cs_calc,4*SD1/(Ta*Ta*(R/Ie)));
+  const Cs_min=0.01*Ie;
+  const Cs=Math.max(Cs_calc,Cs_min);
+
+  // 내진중량 W 자동 계산 옵션
+  const D=n(dead.total)||0;
+  const L=n(live.final)||0;
+  const floors=n(info.floors)||3;
+  const area=n(info.area)||150;
+  const W_auto=(D+0.5*L)*area*floors;
+  const W_use=seis.customW?n(seis.W):W_auto;
+  const V=Cs*W_use;
+
+  useEffect(()=>{
+    const W_auto2=(D+0.5*L)*area*floors;
+    const W_use2=seis.customW?n(seis.W):W_auto2;
+    const V2=Cs*W_use2;
+    setSeis(s=>({...s,zone:rd.zone,Z,Ie,R,Fa,Fv,
+      Ta:parseFloat(Ta.toFixed(3)),
+      Ss:parseFloat(Ss.toFixed(4)),
+      SDS:parseFloat(SDS.toFixed(4)),
+      SD1:parseFloat(SD1.toFixed(4)),
+      Cs:parseFloat(Cs.toFixed(4)),
+      W:parseFloat(W_use2.toFixed(1)),
+      V:parseFloat(V2.toFixed(2)),
+      final:parseFloat(V2.toFixed(2))
+    }));
+  },[seis.soilType,seis.sysIdx,seis.customW,seis.W,info.region,info.importance,info.height,info.floors,info.area,dead.total,live.final]);
+
+  return(
+    <div className="card">
+      <div className="ch"><span className="ch-icon">🌍</span><div><div className="ch-t">지진하중 (E) 산정</div><div className="ch-s">KDS 41 17 00 : 2022 — 등가정적해석법 밑면전단력 (7.2절)</div></div></div>
+      <div className="cb">
+        <div className="rbox-light" style={{marginBottom:12}}>
+          <div style={{fontWeight:800,fontSize:12,marginBottom:6}}>자동 반영 값</div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+            <span className="tag rd">지진구역 {rd.zone} — Z={Z}g</span>
+            <span className="tag rd">Ie = {Ie} (중요도 {info.importance||'2'})</span>
+            <span className="tag rd">hn = {hn} m</span>
+            <span className="tag rd">Ta = {Ta.toFixed(3)} s (약산식)</span>
+          </div>
+        </div>
+        <div className="g3">
+          <div>
+            <div className="fl">지반종류 (KDS 41 17 00 4.1)</div>
+            <select className="fs" value={soilKey} onChange={e=>setSeis({...seis,soilType:e.target.value})}>
+              {Object.entries(SOIL).map(([k,v])=><option key={k} value={k}>{k} — {v.desc.split('—')[0].trim()}</option>)}
+            </select>
+            <div style={{fontSize:10,color:'#64748b',marginTop:3}}>{soil.desc}</div>
+          </div>
+          <div>
+            <div className="fl">지진력저항시스템</div>
+            <select className="fs" value={seis.sysIdx||'0'} onChange={e=>setSeis({...seis,sysIdx:e.target.value})}>
+              {STRUCT_SYS.map((s,i)=><option key={i} value={i}>{s.label} (R={s.R})</option>)}
+            </select>
+            <div style={{fontSize:10,color:'#64748b',marginTop:3}}>Ta = {sys.Ct}×{hn}^{sys.x} = {Ta.toFixed(3)} s</div>
+          </div>
+          <div>
+            <div className="fl">내진중량 W <span className="fu">kN</span></div>
+            <div style={{display:'flex',gap:6,alignItems:'center',marginBottom:4}}>
+              <input type="checkbox" checked={!!seis.customW} onChange={e=>setSeis({...seis,customW:e.target.checked})} style={{cursor:'pointer',width:13,height:13}}/>
+              <span style={{fontSize:11,fontWeight:700}}>직접 입력</span>
+            </div>
+            {seis.customW
+              ?<input className="fi" type="number" min="0" step="100" value={seis.W||''} onChange={e=>setSeis({...seis,W:e.target.value})}/>
+              :<div style={{background:'#f0f4f8',border:'1.5px solid #d1dbe8',borderRadius:7,padding:'8px 11px',fontSize:12,color:'#1e3a5f',fontWeight:700}}>
+                {W_auto.toFixed(0)} kN <span style={{fontSize:10,color:'#64748b'}}>(자동: D+0.5L × 면적 × 층수)</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div className="fbox" style={{marginTop:10}}>
+          Ss = 2.5×Z = 2.5×{Z} = {Ss.toFixed(3)}g &nbsp;|&nbsp; SMS = Fa×Ss = {Fa}×{Ss.toFixed(3)} = {SMS.toFixed(3)}g<br/>
+          SDS = (2/3)×SMS = {SDS.toFixed(4)}g &nbsp;|&nbsp; SD1 = {SD1.toFixed(4)}g<br/>
+          Ts = SD1/SDS = {Ts.toFixed(3)} s &nbsp;|&nbsp; Ta = {Ta.toFixed(3)} s {Ta<=Ts?'≤ Ts (단주기 지배)':'> Ts (장주기 지배)'}<br/>
+          Cs = SDS/(R/Ie) = {SDS.toFixed(4)}/({R}/{Ie}) = <b>{Cs.toFixed(4)}</b>
+        </div>
+
+        <div className="rbox">
+          <div className="rrow"><span className="rlbl">단주기 지반증폭계수 Fa</span><span className="rval">{Fa}</span></div>
+          <div className="rrow"><span className="rlbl">단주기 설계스펙트럼 SDS</span><span className="rval">{f4(SDS)} g</span></div>
+          <div className="rrow"><span className="rlbl">1초 설계스펙트럼 SD1</span><span className="rval">{f4(SD1)} g</span></div>
+          <div className="rrow"><span className="rlbl">반응수정계수 R / 중요도계수 Ie</span><span className="rval">{R} / {Ie}</span></div>
+          <div className="rrow"><span className="rlbl">지진응답계수 Cs</span><span className="rval">{f4(Cs)}</span></div>
+          <div className="rrow"><span className="rlbl">내진중량 W</span><span className="rval">{W_use.toFixed(0)} kN</span></div>
+          <div className="rrow"><span className="rlbl">밑면전단력 <b>V = Cs × W</b></span><span className="rval lg">{V>0?f2(V):'W 필요'} {V>0?'kN':''}</span></div>
+        </div>
+
+        <div className="ibox" style={{marginTop:10}}>
+          <b className="law">KDS 41 17 00 7.2</b> — 등가정적해석법. 내진중량 W = D + 0.5L + 영구설비. Cs_min = 0.01Ie.<br/>
+          내진설계범주 D이상 또는 T>3.5Ts인 경우 동적해석법(7.3절) 적용 요망.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   STEP 6 — 하중조합
+══════════════════════════════════════ */
+function StepCombo({dead,live,snow,wind,seis}){
+  const D=n(dead.total)||0;
+  const L=n(live.final)||0;
+  const S=n(snow.final)||0;
+  const W=n(wind.final)||0;
+  const Cs=n(seis.Cs)||0;
+  const Wt=n(seis.W)||0;
+  // 등가층 지진하중 (단위면적 환산 — Cs×D 근사)
+  const E=Cs*D;
+
+  // Lo ≤ 5.0 면 L계수 0.5 감소 가능 (주차·집회 제외)
+  const Lo=n(live.Lo)||L;
+  const Lr_fac=Lo<=5.0?0.5:1.0;
+
+  // ── KDS 41 12 00 식(1.7-1)~(1.7-7) 정확한 7개 조합
+  // 식(1.7-2): 1.2D+1.6L+0.5(Lr또는S또는R) → S 채택
+  // 식(1.7-3): 1.2D+1.6(Lr또는S또는R)+(L또는0.5W) → S+L 및 S+0.5W 중 큰 값
+  // 식(1.7-4): 1.2D+1.0W+L+0.5(Lr또는S또는R) → S 채택
+  const combos=[
+    {id:'①', label:'1.4D',                        val:1.4*D,              ref:'식 1.7-1'},
+    {id:'②', label:'1.2D + 1.6L + 0.5S',          val:1.2*D+1.6*L+0.5*S, ref:'식 1.7-2'},
+    {id:'③', label:'1.2D + 1.6S + L',             val:1.2*D+1.6*S+L,     ref:'식 1.7-3(a)'},
+    {id:'③\'',label:'1.2D + 1.6S + 0.5W',         val:1.2*D+1.6*S+0.5*W, ref:'식 1.7-3(b)'},
+    {id:'④', label:'1.2D + 1.0W + L + 0.5S',      val:1.2*D+1.0*W+L+0.5*S,ref:'식 1.7-4'},
+    {id:'⑤', label:'0.9D + 1.0W',                 val:0.9*D+1.0*W,       ref:'식 1.7-5'},
+    {id:'⑥', label:'1.2D + 1.0E + L + 0.2S',      val:1.2*D+E+L+0.2*S,   ref:'식 1.7-6'},
+    {id:'⑦', label:'0.9D + 1.0E',                 val:0.9*D+E,           ref:'식 1.7-7'},
+  ];
+  const maxVal=Math.max(...combos.map(c=>c.val));
+  const govIdx=combos.findIndex(c=>c.val===maxVal&&c.val>0);
+
+  return(
+    <div className="card">
+      <div className="ch"><span className="ch-icon">⚖️</span><div><div className="ch-t">LRFD 하중조합</div><div className="ch-s">KDS 41 12 00 1.7.1 — 강도설계법 하중조합 식 (1.7-1)~(1.7-7)</div></div></div>
+      <div className="cb">
+
+        {/* 입력값 확인판 */}
+        <div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:14}}>
+          {[['D',D,'kN/m²','#eff6ff','#bfdbfe','#1d4ed8'],
+            ['L',L,'kN/m²','#f0fdf4','#bbf7d0','#15803d'],
+            ['S',S,'kN/m²','#eff6ff','#bfdbfe','#0284c7'],
+            ['W',W,'kN/m²','#f0fdfa','#99f6e4','#0f766e'],
+            ['E',E,'kN/m²','#fef2f2','#fecaca','#dc2626'],
+          ].map(([lbl,val,unit,bg,bd,clr])=>(
+            <div key={lbl} style={{background:val>0?bg:'#f8fafc',border:`1.5px solid ${val>0?bd:'#e2e8f0'}`,borderRadius:9,padding:'8px 12px',minWidth:90,textAlign:'center',transition:'all .15s'}}>
+              <div className="mono" style={{fontSize:17,fontWeight:900,color:val>0?clr:'#94a3b8'}}>{f3(val)}</div>
+              <div style={{fontSize:10,fontWeight:700,color:'#64748b',marginTop:2}}>{lbl} [{unit}]</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{overflowX:'auto'}}>
+          <table className="ctable" style={{minWidth:500}}>
+            <thead><tr>
+              <th style={{width:46}}>조합</th>
+              <th style={{textAlign:'left',paddingLeft:8}}>하중조합 식</th>
+              <th style={{width:110}}>결과 (kN/m²)</th>
+              <th style={{width:80}}>KDS 근거</th>
+              <th style={{width:70}}>비고</th>
+            </tr></thead>
+            <tbody>
+              {combos.map((c,i)=>{
+                const isGov=i===govIdx&&c.val>0;
+                const pct=maxVal>0?Math.round(c.val/maxVal*100):0;
+                return(
+                  <tr key={i} className={isGov?'gov':''}>
+                    <td className="cn">{c.id}</td>
+                    <td style={{textAlign:'left',paddingLeft:8,fontSize:11.5}}>{c.label}</td>
+                    <td className="cv mono">
+                      <div style={{display:'flex',alignItems:'center',gap:6,justifyContent:'flex-end'}}>
+                        <div style={{width:Math.max(pct,2),maxWidth:40,height:5,background:isGov?'#dc2626':'#bfdbfe',borderRadius:3,flexShrink:0}}/>
+                        <span style={{color:isGov?'#1e3a5f':'inherit'}}>{f3(c.val)}</span>
+                      </div>
+                    </td>
+                    <td style={{textAlign:'center',fontSize:10,color:'#64748b'}}>{c.ref}</td>
+                    <td style={{textAlign:'center',fontSize:10,fontWeight:isGov?900:400,color:isGov?'#dc2626':'#64748b'}}>{isGov?'▶ 지배':''}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 지배하중 최종 패널 */}
+        <div className="fpanel">
+          <div className="fpt">🏆 설계 지배하중 결과</div>
+          <div className="fpg">
+            <div className="fpi gov">
+              <div className="fpil">지배 조합</div>
+              <div style={{fontSize:20,fontWeight:900,color:'#fca5a5'}}>{combos[govIdx]?.id||'—'}</div>
+              <div className="fpiu">{combos[govIdx]?.label||'—'}</div>
+            </div>
+            <div className="fpi gov">
+              <div className="fpil">최대 설계하중</div>
+              <div className="fpiv">{f3(maxVal)}</div>
+              <div className="fpiu">kN/m²</div>
+            </div>
+            <div className="fpi"><div className="fpil">고정하중 D</div><div className="fpiv">{f2(D)}</div><div className="fpiu">kN/m²</div></div>
+            <div className="fpi"><div className="fpil">활하중 L</div><div className="fpiv">{f2(L)}</div><div className="fpiu">kN/m²</div></div>
+            <div className="fpi"><div className="fpil">적설하중 S</div><div className="fpiv">{f3(S)}</div><div className="fpiu">kN/m²</div></div>
+            <div className="fpi"><div className="fpil">풍하중 W</div><div className="fpiv">{f3(W)}</div><div className="fpiu">kN/m²</div></div>
+            <div className="fpi"><div className="fpil">지진(Cs×D)</div><div className="fpiv">{f3(E)}</div><div className="fpiu">kN/m²</div></div>
+            <div className="fpi"><div className="fpil">밑면전단력 V</div><div className="fpiv">{n(seis.W)>0&&seis.V>0?seis.V.toFixed(0):'W 미입력'}</div><div className="fpiu">kN</div></div>
+          </div>
+        </div>
+
+        <div className="ibox" style={{marginTop:12}}>
+          <b className="law">KDS 41 12 00 1.7.1(2)</b> — 기본등분포활하중 Lo ≤ 5.0 kN/m² 용도 (주차장·공공집회 제외)는 조합③④⑤에서 L 하중계수를 <b>1.0 → 0.5</b>로 감소 가능 (본 도구는 보수적으로 1.0 적용).<br/>
+          <b className="law">조합 ③ 해석</b> — 식(1.7-3): 1.2D+1.6S+(L 또는 0.5W) → 본 도구는 ③(L 선택)과 ③'(0.5W 선택)을 모두 계산하여 큰 값을 반영합니다.<br/>
+          <b className="law">지진 E 산정</b> — E = ρQE ± 0.2SDS·D (엄밀식). 본 도구는 간편 근사(E ≈ Cs × D)를 사용. 정식 계산서는 KDS 41 17 00 8.1절 적용 필요.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   인쇄 계산서 (A4 서식)
+══════════════════════════════════════ */
+function PrintReport({info,dead,live,snow,wind,seis,forPrint=false}){
+  const D=n(dead.total)||0;
+  const L=n(live.final)||0;
+  const S=n(snow.final)||0;
+  const W=n(wind.final)||0;
+  // E: 상태에 저장된 Cs 사용 (지진탭 미방문 시에도 초기값 0.0733 유효)
+  const Cs=n(seis.Cs)||0;
+  const E=Cs*D;
+  // V: 상태에서 직접 (W_auto 기준으로 재계산하여 표시)
+  const seisW=n(seis.W)||0;
+  const V_display=seisW>0?n(seis.V)||Cs*seisW:0;
+
+  // KDS 41 12 00 식(1.7-1)~(1.7-7) 정확한 조합
+  const combos=[
+    {id:'①', label:'1.4D',                    val:1.4*D},
+    {id:'②', label:'1.2D+1.6L+0.5S',         val:1.2*D+1.6*L+0.5*S},
+    {id:'③', label:'1.2D+1.6S+L',            val:1.2*D+1.6*S+L},
+    {id:'③\'',label:'1.2D+1.6S+0.5W',        val:1.2*D+1.6*S+0.5*W},
+    {id:'④', label:'1.2D+1.0W+L+0.5S',       val:1.2*D+1.0*W+L+0.5*S},
+    {id:'⑤', label:'0.9D+1.0W',              val:0.9*D+1.0*W},
+    {id:'⑥', label:'1.2D+1.0E+L+0.2S',       val:1.2*D+E+L+0.2*S},
+    {id:'⑦', label:'0.9D+1.0E',              val:0.9*D+E},
+  ];
+  const maxVal=Math.max(...combos.map(c=>c.val));
+  const govC=combos.find(c=>c.val===maxVal&&c.val>0)||combos[0];
+
+  const today=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+  const BD='1px solid #c8d8e8';
+  const TH={background:'#1e3a5f',color:'white',padding:'7px 10px',textAlign:'center',fontWeight:700,fontSize:11,border:BD};
+  const TD=(extra={})=>({padding:'6px 10px',textAlign:'center',border:BD,fontSize:11,fontFamily:"'Noto Sans Mono','Noto Sans KR',monospace",...extra});
+
+  // ── 산정 과정에서 쓸 중간값 재계산 (PrintReport는 상태와 독립적으로 렌더)
+  const rd2=REGION_DATA[info.region||'서울특별시']||{V0:26,Sg:0.5,zone:'I'};
+  const imp2=IMPORTANCE[info.importance||'2']||{Iw:1.0,Is:1.0,Ie:1.0};
+  // 적설
+  const Sg2=rd2.Sg, Is2=imp2.Is, Cb2=0.7;
+  const Ce2=n(snow.Ce)||1.0, Ct2=n(snow.Ct)||1.0;
+  const Sf2=Cb2*Ce2*Ct2*Is2*Sg2;
+  const theta2=n(info.roofAngle)||0;
+  const Cs2=theta2<=30?1.0:theta2>=70?0:1.0-(theta2-30)/40;
+  const Sr2=Sf2*Cs2;
+  const minS2=Sg2>1.0?1.0*Is2:Sg2*Is2;
+  // 풍
+  const V02=rd2.V0, Iw2=imp2.Iw, H2=n(info.height)||12, B2=n(info.width)||10;
+  const exp2=EXPOSURE[wind.exposure||'C'];
+  const Kz2=Math.min(exp2.Kz10*Math.pow(Math.max(H2,exp2.zb)/10,2*exp2.a),2.5);
+  const qH2=0.6e-3*Kz2*1.0*V02*V02*Iw2*Iw2;
+  const W_raw2=qH2*0.85*1.1;
+  const W2=Math.max(W_raw2,0.675);
+  // 지진
+  const Z2=rd2.zone==='II'?0.07:0.11, Ie2=imp2.Ie;
+  const sys2=STRUCT_SYS[n(seis.sysIdx)||0]||STRUCT_SYS[0];
+  const soil2=SOIL[seis.soilType||'SC'];
+  const Ss2=2.5*Z2, SMS2=soil2.Fa*Ss2, SDS2=(2/3)*SMS2;
+  const SM12=soil2.Fv*1.0*Z2, SD12=(2/3)*SM12;
+  const Ta2=sys2.Ct*Math.pow(H2,sys2.x);
+  const Ts2=SD12/SDS2;
+  let Cs_c2=SDS2/(sys2.R/Ie2);
+  if(Ta2>Ts2)Cs_c2=Math.min(Cs_c2,SD12/(Ta2*(sys2.R/Ie2)));
+  const Cs_f2=Math.max(Cs_c2,0.01*Ie2);
+  const seisArea=n(info.area)||150, seisFloors=n(info.floors)||3;
+  const W_seisAuto=(D+0.5*L)*seisArea*seisFloors;
+  const W_seis=seisW>0?seisW:W_seisAuto;
+  const V_f2=Cs_f2*W_seis;
+
+  const SH={background:'#1e3a5f',color:'white',padding:'7px 12px',fontSize:12,fontWeight:800,borderRadius:'6px 6px 0 0',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact'};
+  const proc={background:'#f8fafc',border:BD,borderTop:'none',padding:'10px 14px',fontSize:10.5,lineHeight:1.95,color:'#1e293b',borderRadius:'0 0 6px 6px',fontFamily:"'Noto Sans Mono','Noto Sans KR',monospace"};
+  const eq=(txt)=><span style={{fontWeight:900,color:'#1e3a5f'}}>{txt}</span>;
+  const ans=(txt)=><span style={{fontWeight:900,color:'#dc2626',fontSize:12}}>{txt}</span>;
+  const note=(txt)=><span style={{color:'#64748b',fontSize:10}}>{txt}</span>;
+
+  const wrapProps=forPrint?{id:'print-report'}:{};
+  return(
+    <div {...wrapProps} style={{background:'white',padding:'0 2mm'}}>
+
+      {/* ── 표지 헤더 ── */}
+      <div className="pr-cover" style={{background:'linear-gradient(90deg,#0f2240,#1e3a5f 60%,#2d5186)',color:'white',padding:'18px 22px',borderRadius:'8px 8px 0 0',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,flexWrap:'wrap',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact'}}>
+        <div>
+          <div style={{fontSize:18,fontWeight:900,letterSpacing:'-.02em',lineHeight:1.2}}>건축물 설계하중 통합 산정서</div>
+          <div style={{fontSize:11,opacity:.8,marginTop:4}}>KDS 41 12 00 : 2022 건축물 설계하중 &nbsp;·&nbsp; KDS 41 17 00 : 2022 건축물 내진설계기준</div>
+          <div style={{fontSize:10,opacity:.65,marginTop:3}}>국토교통부 건축안전과 소관 | 대한건축학회 작성 | 2022.10.11 개정</div>
+        </div>
+        <div style={{textAlign:'right',flexShrink:0}}>
+          <div style={{fontFamily:"'Orbitron',monospace",fontWeight:700,letterSpacing:'.08em',fontSize:11}}>MANMIN · Ver 1.0</div>
+          <div style={{fontSize:10,opacity:.7,marginTop:4}}>{today}</div>
+        </div>
+      </div>
+
+      <div style={{border:BD,borderTop:'none',borderRadius:'0 0 8px 8px',padding:'16px 20px'}}>
+
+        {/* ── Ⅰ. 프로젝트 개요 ── */}
+        <div className="ps" style={{marginBottom:14}}>
+          <div style={SH}>Ⅰ. 프로젝트 개요</div>
+          <table style={{width:'100%',borderCollapse:'collapse',fontSize:11,border:BD}}>
+            <tbody>
+              {[
+                [['프로젝트명',info.name||'—'],['건축물 용도',info.usage||'—']],
+                [['건설 지역',info.region||'—'],['중요도 등급',`${info.importance||'2'}등급 — ${IMPORTANCE[info.importance||'2']?.desc||''}`]],
+                [['건물 높이',`${info.height||'—'} m (지상 ${info.floors||'—'}층)`],['평면 규모',`${info.width||'—'} m × ${info.depth||'—'} m (바닥면적 ${info.area||'—'} m²)`]],
+                [['지붕 경사각',`${info.roofAngle||0}°`],['산정 일자',today]],
+              ].map((row,ri)=>(
+                <tr key={ri}>
+                  {row.map(([k,v],ci)=>[
+                    <td key={`k${ci}`} style={{...TD({textAlign:'left'}),background:'#f0f4f8',fontWeight:700,width:'13%',whiteSpace:'nowrap'}}>{k}</td>,
+                    <td key={`v${ci}`} style={{...TD({textAlign:'left'}),width:'37%'}}>{v}</td>
+                  ])}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ── Ⅱ. 고정하중 산정 ── */}
+        <div className="ps" style={{marginBottom:14}}>
+          <div style={SH}>Ⅱ. 고정하중 (D) 산정 — KDS 41 12 00 2절</div>
+          <table style={{width:'100%',borderCollapse:'collapse',fontSize:11,border:BD}}>
+            <thead><tr>{['항목명','재료','단위중량(kN/m³)','두께(m)','산정식','하중(kN/m²)'].map(h=><th key={h} style={TH}>{h}</th>)}</tr></thead>
+            <tbody>
+              {(dead.items||[]).filter(it=>it.use).map((it,i)=>{
+                const w=n(it.w), t=n(it.t);
+                const kn=it.calc?w*t:w;
+                const formula=it.calc?`${w.toFixed(2)} × ${t.toFixed(3)}`:'직접 입력';
+                return(
+                  <tr key={i} style={{background:i%2===0?'white':'#f8fafc'}}>
+                    <td style={{...TD({textAlign:'left'}),fontFamily:"'Noto Sans KR',sans-serif",fontWeight:600}}>{it.name||'—'}</td>
+                    <td style={TD({textAlign:'left',fontFamily:"'Noto Sans KR',sans-serif"})}>{it.mat||'—'}</td>
+                    <td style={TD()}>{it.calc?w.toFixed(1):'—'}</td>
+                    <td style={TD()}>{it.calc?t.toFixed(3):'—'}</td>
+                    <td style={TD({textAlign:'left',paddingLeft:8})}>{formula}</td>
+                    <td style={{...TD(),fontWeight:700,color:'#1e3a5f'}}>{kn.toFixed(3)}</td>
+                  </tr>
+                );
+              })}
+              <tr style={{background:'#eff6ff'}}>
+                <td colSpan={5} style={{...TD({textAlign:'right',fontFamily:"'Noto Sans KR',sans-serif"}),fontWeight:800,color:'#1e3a5f'}}>합계 D =</td>
+                <td style={{...TD(),fontWeight:900,fontSize:13,color:'#1e3a5f'}}>{f2(D)} kN/m²</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style={{...proc,borderRadius:'0 0 6px 6px'}}>
+            <b>∴ 고정하중 D = {f2(D)} kN/m²</b> &nbsp;({(dead.items||[]).filter(x=>x.use).length}개 항목 합산)<br/>
+            {note('※ 칸막이 벽체 미확정 시 최소 1.0 kN/m² 적용 (KDS 41 12 00 2.2)')}
+          </div>
+        </div>
+
+        {/* ── Ⅲ. 활하중 산정 ── */}
+        <div className="ps" style={{marginBottom:14}}>
+          <div style={SH}>Ⅲ. 활하중 (L) 산정 — KDS 41 12 00 3절 표 3.2-1</div>
+          <div style={{...proc,borderRadius:'0 0 6px 6px'}}>
+            <b>■ 용도 : {live.cat||'—'} / {live.sub||'직접입력'}</b><br/>
+            {eq('기본등분포활하중 Lo')} = {f2(n(live.Lo)||L)} kN/m² &nbsp;{note('(표 3.2-1)')}<br/>
+            {live.reduceApply&&n(live.AT)>0&&n(live.KLL)>0?(
+              <>
+                부하면적 AT = {live.AT} m² &nbsp;|&nbsp; KLL = {live.KLL} &nbsp;→&nbsp; AT×KLL = {(n(live.AT)*n(live.KLL)).toFixed(1)} m²<br/>
+                {eq('저감계수')} = 0.25 + 4.57 / √{(n(live.AT)*n(live.KLL)).toFixed(1)} = {(0.25+4.57/Math.sqrt(n(live.AT)*n(live.KLL))).toFixed(3)}<br/>
+                {eq('저감 활하중 Lr')} = Lo × 저감계수 = {f2(n(live.Lo)||L)} × {(0.25+4.57/Math.sqrt(n(live.AT)*n(live.KLL))).toFixed(3)} = {f2(n(live.Lr)||L)} kN/m²<br/>
+              </>
+            ):<>{note('활하중 저감 미적용')}<br/></>}
+            {ans(`∴ 적용 활하중 L = ${f2(L)} kN/m²`)}
+          </div>
+        </div>
+
+        {/* ── Ⅳ. 적설하중 산정 ── */}
+        <div className="ps" style={{marginBottom:14}}>
+          <div style={SH}>Ⅳ. 적설하중 (S) 산정 — KDS 41 12 00 4절</div>
+          <div style={{...proc,borderRadius:'0 0 6px 6px'}}>
+            <b>■ 평지붕설하중 : Sf = Cb × Ce × Ct × Is × Sg &nbsp;&nbsp;{note('(KDS 41 12 00 식 4.3-1)')}</b><br/>
+            &nbsp;&nbsp;Cb = {Cb2} &nbsp;{note('(기본지붕설하중계수, 일반)')}<br/>
+            &nbsp;&nbsp;Ce = {Ce2} &nbsp;{note('(노출계수, 표 4.3-1)')}<br/>
+            &nbsp;&nbsp;Ct = {Ct2} &nbsp;{note('(온도계수, 표 4.3-2)')}<br/>
+            &nbsp;&nbsp;Is = {Is2} &nbsp;{note(`(중요도계수, 중요도 ${info.importance||'2'}등급, 표 4.3-3)`)}<br/>
+            &nbsp;&nbsp;Sg = {Sg2} kN/m² &nbsp;{note(`(지상기본적설하중, ${info.region||'지역'}, 그림 4.2-1)`)}<br/>
+            {eq(`Sf = ${Cb2} × ${Ce2} × ${Ct2} × ${Is2} × ${Sg2}`)} = <b>{f3(Sf2)} kN/m²</b><br/>
+            {theta2>0?(
+              <>
+                <b>■ 경사지붕설하중 : Sr = Sf × Cs &nbsp;&nbsp;{note('(KDS 41 12 00 식 4.4-1)')}</b><br/>
+                &nbsp;&nbsp;θ = {theta2}° {theta2<=30?'≤ 30°':theta2>=70?'≥ 70°':'30° < θ < 70°'} &nbsp;→&nbsp;
+                Cs = {theta2<=30?'1.000':theta2>=70?'0.000':`1.0 − (${theta2}−30)/40`} = {f3(Cs2)}<br/>
+                {eq(`Sr = ${f3(Sf2)} × ${f3(Cs2)}`)} = <b>{f3(Sr2)} kN/m²</b><br/>
+              </>
+            ):null}
+            <b>■ 최소설하중 검토 &nbsp;{note('(KDS 41 12 00 4.3.5)')}</b><br/>
+            &nbsp;&nbsp;minS = {Sg2>1.0?`1.0 × ${Is2} = ${f3(1.0*Is2)}`:`${Sg2} × ${Is2} = ${f3(minS2)}`} kN/m²<br/>
+            &nbsp;&nbsp;산정값 = {f3(theta2>0?Sr2:Sf2)} kN/m² &nbsp;{(theta2>0?Sr2:Sf2)<minS2?<span style={{color:'#dc2626',fontWeight:700}}>{'< minS → 최소값 적용'}</span>:'≥ minS → 산정값 적용'}<br/>
+            {ans(`∴ 적용 설하중 S = ${f3(S)} kN/m²`)}
+          </div>
+        </div>
+
+        {/* ── Ⅴ. 풍하중 산정 ── */}
+        <div className="ps" style={{marginBottom:14}}>
+          <div style={SH}>Ⅴ. 풍하중 (W) 산정 — KDS 41 12 00 5절 (간편법 5.15절)</div>
+          <div style={{...proc,borderRadius:'0 0 6px 6px'}}>
+            <b>■ 속도압 : qH = 0.6×10⁻³ × Kz × Kzt × V₀² × Iw² &nbsp;&nbsp;{note('(KDS 41 12 00 식 5.5-1)')}</b><br/>
+            &nbsp;&nbsp;V₀ = {V02} m/s &nbsp;{note(`(기본풍속, ${info.region||'지역'}, 표 5.5-1)`)}<br/>
+            &nbsp;&nbsp;Iw = {Iw2} &nbsp;{note(`(풍하중 중요도계수, 중요도 ${info.importance||'2'}등급)`)}<br/>
+            &nbsp;&nbsp;Kzt = 1.00 &nbsp;{note('(지형계수, 일반지형)')}<br/>
+            &nbsp;&nbsp;Kz = {exp2.Kz10} × ({H2}/10)^(2×{exp2.a}) = {f4(Kz2)} &nbsp;{note(`(풍속고도분포계수, 조도구분 ${wind.exposure||'C'}, H=${H2}m)`)}<br/>
+            {eq(`qH = 0.6×10⁻³ × ${f4(Kz2)} × 1.00 × ${V02}² × ${Iw2}²`)} = <b>{f4(qH2)} kN/m²</b><br/><br/>
+            <b>■ 설계풍압 : W = qH × G × Cf &nbsp;&nbsp;{note('(KDS 41 12 00 5.15.2, 간편법)')}</b><br/>
+            &nbsp;&nbsp;G = 0.85 &nbsp;{note('(가스트계수)')}<br/>
+            &nbsp;&nbsp;Cf = 1.1 &nbsp;{note('(풍력계수: 풍상측 0.6 + 풍하측 0.5)')}<br/>
+            {eq(`W = ${f4(qH2)} × 0.85 × 1.1`)} = {f4(W_raw2)} kN/m²<br/>
+            {W_raw2<0.675?<><span style={{color:'#dc2626',fontWeight:700}}>⚠ 간편법 최솟값(0.675 kN/m²) 적용</span><br/></>:null}
+            {ans(`∴ 적용 풍하중 W = ${f4(W2)} kN/m²`)}<br/>
+            {note(`총 수평풍력 Fw = W × H × B = ${f4(W2)} × ${H2} × ${B2} = ${(W2*H2*B2).toFixed(2)} kN`)}
+          </div>
+        </div>
+
+        {/* ── Ⅵ. 지진하중 산정 ── */}
+        <div className="ps" style={{marginBottom:14}}>
+          <div style={SH}>Ⅵ. 지진하중 (E) 산정 — KDS 41 17 00 : 2022 등가정적해석법 7.2절</div>
+          <div style={{...proc,borderRadius:'0 0 6px 6px'}}>
+            <b>■ 지진구역 및 스펙트럼가속도</b><br/>
+            &nbsp;&nbsp;지진구역 {rd2.zone} &nbsp;→&nbsp; Z = {Z2}g &nbsp;{note(`(${info.region||'지역'}, KDS 41 17 00 3.1)`)}<br/>
+            &nbsp;&nbsp;지반종류 {seis.soilType||'SC'} : Fa = {soil2.Fa}, Fv = {soil2.Fv} &nbsp;{note('(표 4.2-2, 4.2-3)')}<br/>
+            &nbsp;&nbsp;Ss = 2.5 × Z = 2.5 × {Z2} = {f4(Ss2)}g &nbsp;{note('(단주기 스펙트럼가속도)')}<br/>
+            &nbsp;&nbsp;SMS = Fa × Ss = {soil2.Fa} × {f4(Ss2)} = {f4(SMS2)}g &nbsp;→&nbsp; {eq('SDS = (2/3) × SMS')} = <b>{f4(SDS2)}g</b><br/>
+            &nbsp;&nbsp;SM1 = Fv × S1 = {soil2.Fv} × {f4(1.0*Z2)} = {f4(SM12)}g &nbsp;→&nbsp; {eq('SD1 = (2/3) × SM1')} = <b>{f4(SD12)}g</b><br/><br/>
+            <b>■ 고유주기 &nbsp;{note('(KDS 41 17 00 식 7.2-6, 약산식)')}</b><br/>
+            &nbsp;&nbsp;구조시스템 : {sys2.label} &nbsp;(R = {sys2.R}, Ct = {sys2.Ct}, x = {sys2.x})<br/>
+            &nbsp;&nbsp;{eq('Ta = Ct × hn^x')} = {sys2.Ct} × {H2}^{sys2.x} = <b>{f3(Ta2)} s</b><br/>
+            &nbsp;&nbsp;Ts = SD1/SDS = {f4(SD12)}/{f4(SDS2)} = {f3(Ts2)} s &nbsp;→&nbsp; Ta = {f3(Ta2)} s {Ta2<=Ts2?'≤ Ts (단주기 지배)':'> Ts (장주기 지배)'}<br/><br/>
+            <b>■ 지진응답계수 &nbsp;{note('(KDS 41 17 00 식 7.2-2~5)')}</b><br/>
+            &nbsp;&nbsp;Ie = {Ie2} &nbsp;{note(`(중요도계수, 중요도 ${info.importance||'2'}등급)`)}<br/>
+            &nbsp;&nbsp;{eq('Cs = SDS / (R/Ie)')} = {f4(SDS2)} / ({sys2.R}/{Ie2}) = {f4(Cs_c2)}<br/>
+            {Ta2>Ts2&&SD12/(Ta2*(sys2.R/Ie2))<Cs_c2?(
+              <>&nbsp;&nbsp;Ta &gt; Ts → 상한 적용: Cs ≤ SD1/(T×R/Ie) = {f4(SD12/(Ta2*(sys2.R/Ie2)))}<br/></>
+            ):null}
+            &nbsp;&nbsp;Cs_min = 0.01 × Ie = {(0.01*Ie2).toFixed(4)}<br/>
+            &nbsp;&nbsp;{ans(`Cs = max(산정값, Cs_min) = ${f4(Cs_f2)}`)}<br/><br/>
+            <b>■ 내진중량 및 밑면전단력</b><br/>
+            {seisW>0?(
+              <>&nbsp;&nbsp;W = {seisW.toFixed(0)} kN &nbsp;{note('(직접 입력)')}<br/></>
+            ):(
+              <>&nbsp;&nbsp;W ≈ (D+0.5L) × 면적 × 층수 = ({f2(D)}+0.5×{f2(L)}) × {seisArea} × {seisFloors} = {W_seisAuto.toFixed(0)} kN &nbsp;{note('(자동 산정)')}<br/></>
+            )}
+            &nbsp;&nbsp;{eq('V = Cs × W')} = {f4(Cs_f2)} × {W_seis.toFixed(0)} = <b>{f2(V_f2)} kN</b><br/>
+            {ans(`∴ 지진응답계수 Cs = ${f4(Cs_f2)}, 밑면전단력 V = ${f2(V_f2)} kN`)}
+          </div>
+        </div>
+
+        {/* ── Ⅶ. 설계하중 요약 ── */}
+        <div className="ps" style={{marginBottom:14}}>
+          <div style={SH}>Ⅶ. 설계하중 산정 요약</div>
+          <table style={{width:'100%',borderCollapse:'collapse',fontSize:11,border:BD}}>
+            <thead><tr>{['구분','기호','산정값','단위','주요 산정 근거 (KDS 41 12 00 : 2022)'].map(h=><th key={h} style={TH}>{h}</th>)}</tr></thead>
+            <tbody>
+              {[
+                ['고정하중','D',f2(D),'kN/m²',`${(dead.items||[]).filter(x=>x.use).length}개 항목 합산 — KDS 2절`],
+                ['활하중','L',f2(L),'kN/m²',`${live.cat||''}/${live.sub||'직접입력'}, 표 3.2-1${live.reduceApply?' (저감 적용)':''}`],
+                ['적설하중','S',f3(S),'kN/m²',`Cb=${Cb2}·Ce=${Ce2}·Ct=${Ct2}·Is=${Is2}·Sg=${Sg2} — KDS 4절`],
+                ['풍하중','W',f4(W),'kN/m²',`V₀=${V02}m/s, 조도${wind.exposure||'C'}, G=0.85, Cf=1.1 — KDS 5절`],
+                ['지진응답계수','Cs',f4(Cs_f2),'—',`구역${rd2.zone}(Z=${Z2}g), ${seis.soilType||'SC'}지반, R=${sys2.R} — KDS 41 17 00`],
+                ['밑면전단력','V',W_seis>0?f2(V_f2):'—','kN',`V = Cs × W = ${f4(Cs_f2)} × ${W_seis.toFixed(0)}`],
+              ].map(([nm,sym,val,unit,note_],i)=>(
+                <tr key={i} style={{background:i%2===0?'white':'#f8fafc'}}>
+                  <td style={{...TD({textAlign:'left',fontFamily:"'Noto Sans KR',sans-serif"}),fontWeight:700}}>{nm}</td>
+                  <td style={{...TD(),fontWeight:900,color:'#1e3a5f'}}>{sym}</td>
+                  <td style={{...TD(),fontWeight:900,fontSize:13,color:'#1e3a5f'}}>{val}</td>
+                  <td style={TD()}>{unit}</td>
+                  <td style={{...TD({textAlign:'left',fontFamily:"'Noto Sans KR',sans-serif"}),fontSize:10,color:'#4b5563'}}>{note_}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ── Ⅷ. LRFD 하중조합 ── */}
+        <div className="ps pb" style={{marginBottom:14}}>
+          <div style={SH}>Ⅷ. LRFD 강도설계법 하중조합 — KDS 41 12 00 식 (1.7-1)~(1.7-7)</div>
+          {/* 입력값 확인 행 */}
+          <div style={{display:'flex',flexWrap:'wrap',gap:6,padding:'8px 12px',background:'#f0f4f8',border:BD,borderTop:'none',borderBottom:'none',fontSize:11}}>
+            {[['D',f2(D)],['L',f2(L)],['S',f3(S)],['W',f4(W)],['E(=Cs×D)',f4(E)]].map(([k,v])=>(
+              <span key={k} style={{background:'white',border:'1px solid #d1dbe8',borderRadius:5,padding:'2px 8px',fontFamily:"'Noto Sans Mono',monospace",fontWeight:700,color:'#1e3a5f'}}>
+                {k} = {v} kN/m²
+              </span>
+            ))}
+          </div>
+          <table style={{width:'100%',borderCollapse:'collapse',fontSize:11,border:BD,borderTop:'none'}}>
+            <thead><tr>{['조합','하중조합 식 (KDS 근거)','계산 전개','결과(kN/m²)','비고'].map(h=><th key={h} style={TH}>{h}</th>)}</tr></thead>
+            <tbody>
+              {[
+                {id:'①',label:'1.4D',ref:'식 1.7-1',
+                  expand:`1.4×${f2(D)}`,val:1.4*D},
+                {id:'②',label:'1.2D + 1.6L + 0.5S',ref:'식 1.7-2',
+                  expand:`1.2×${f2(D)}+1.6×${f2(L)}+0.5×${f3(S)}`,val:1.2*D+1.6*L+0.5*S},
+                {id:'③',label:'1.2D + 1.6S + L',ref:'식 1.7-3(a)',
+                  expand:`1.2×${f2(D)}+1.6×${f3(S)}+${f2(L)}`,val:1.2*D+1.6*S+L},
+                {id:"③'",label:'1.2D + 1.6S + 0.5W',ref:'식 1.7-3(b)',
+                  expand:`1.2×${f2(D)}+1.6×${f3(S)}+0.5×${f4(W)}`,val:1.2*D+1.6*S+0.5*W},
+                {id:'④',label:'1.2D + 1.0W + L + 0.5S',ref:'식 1.7-4',
+                  expand:`1.2×${f2(D)}+${f4(W)}+${f2(L)}+0.5×${f3(S)}`,val:1.2*D+W+L+0.5*S},
+                {id:'⑤',label:'0.9D + 1.0W',ref:'식 1.7-5',
+                  expand:`0.9×${f2(D)}+${f4(W)}`,val:0.9*D+W},
+                {id:'⑥',label:'1.2D + 1.0E + L + 0.2S',ref:'식 1.7-6',
+                  expand:`1.2×${f2(D)}+${f4(E)}+${f2(L)}+0.2×${f3(S)}`,val:1.2*D+E+L+0.2*S},
+                {id:'⑦',label:'0.9D + 1.0E',ref:'식 1.7-7',
+                  expand:`0.9×${f2(D)}+${f4(E)}`,val:0.9*D+E},
+              ].map((c,i)=>{
+                const isGov=c.val===maxVal&&c.val>0;
+                return(
+                  <tr key={i} style={{background:isGov?'#fffbeb':i%2===0?'white':'#f8fafc'}}>
+                    <td style={{...TD(),fontWeight:700,color:isGov?'#dc2626':'inherit'}}>{c.id}</td>
+                    <td style={{...TD({textAlign:'left',fontFamily:"'Noto Sans KR',sans-serif"}),paddingLeft:9,fontSize:10.5}}>{c.label} &nbsp;<span style={{color:'#94a3b8',fontSize:9.5}}>({c.ref})</span></td>
+                    <td style={{...TD({textAlign:'left'}),fontSize:10,color:'#475569',paddingLeft:9,fontFamily:"'Noto Sans Mono',monospace"}}>{c.expand}</td>
+                    <td style={{...TD(),fontWeight:isGov?900:600,fontSize:isGov?13:11,color:isGov?'#0f2240':'inherit'}}>{f3(c.val)}</td>
+                    <td style={{...TD({fontFamily:"'Noto Sans KR',sans-serif"}),fontWeight:isGov?900:400,color:isGov?'#dc2626':'#9ca3af',fontSize:10.5}}>{isGov?'▶ 설계 지배':''}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div style={{background:'#fffbeb',border:BD,borderTop:'none',padding:'10px 14px',fontSize:12,fontWeight:800,color:'#92400e',borderRadius:'0 0 6px 6px'}}>
+            ▶ 설계지배하중조합 &nbsp;: &nbsp;<b style={{color:'#dc2626'}}>{govC.id}</b>
+            &nbsp;({govC.label})
+            &nbsp;= &nbsp;<span style={{color:'#dc2626',fontSize:14}}>{f3(maxVal)} kN/m²</span>
+          </div>
+        </div>
+
+        {/* ── Ⅸ. 적용 기준 ── */}
+        <div className="ps" style={{fontSize:10,color:'#4b5563',lineHeight:1.95,background:'#f8fafc',border:BD,borderRadius:6,padding:'11px 14px'}}>
+          <b style={{color:'#1e293b',fontSize:11}}>▣ 적용 기준 및 법령</b><br/>
+          ① <b>KDS 41 12 00 : 2022</b> 건축물 설계하중 — 2022.10.11 개정, 소관: 국토교통부 건축안전과, 작성: 대한건축학회<br/>
+          ② <b>KDS 41 17 00 : 2022</b> 건축물 내진설계기준 — 동일 개정<br/>
+          ③ <b>KDS 41 10 05 : 2019</b> 내진설계 공통사항<br/>
+          ④ <b>건축법 시행령 제32조</b> — 구조 안전의 확인 (건축구조기술사 날인 의무)<br/>
+          ⑤ 풍하중은 간편법(5.15절) 적용; E는 근사식(E≈Cs×D) 사용 — 정식 계산서는 책임구조기술자 확인 필요<br/><br/>
+          <span style={{color:'#dc2626',fontWeight:700}}>⚠ 본 산정서는 건축사 인허가·VE 단계의 적정성 검토용이며, 정식 구조계산서(건축구조기술사 날인)를 대체하지 않습니다.</span>
+        </div>
+
+        <div style={{textAlign:'right',marginTop:14,fontFamily:"'Orbitron',sans-serif",fontWeight:700,letterSpacing:'.08em',fontSize:10,color:'#9ca3af'}}>
+          MANMIN · Ver 1.0 &nbsp;|&nbsp; KDS 41 12 00 : 2022 &nbsp;|&nbsp; KDS 41 17 00 : 2022
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   메인 APP
+══════════════════════════════════════ */
+function App(){
+  const [activeTab,setActiveTab]=useState(0);
+  const [showGuide,setShowGuide]=useState(false);
+  const [showHelp,setShowHelp]=useState(false);
+  const [helpBadge,setHelpBadge]=useState(true);
+  const [deferredPrompt,setDeferredPrompt]=useState(null);
+  const [showPwaBanner,setShowPwaBanner]=useState(false);
+  const [isIos,setIsIos]=useState(false);
+  const [isInstalled,setIsInstalled]=useState(false);
+
+  // PWA 설치 이벤트 감지
+  React.useEffect(()=>{
+    const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    const inStandalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
+    setIsIos(ios);setIsInstalled(inStandalone);
+    const dismissed=sessionStorage.getItem('pwa-banner-dismissed');
+    if(inStandalone)return;
+    if(ios&&!dismissed){setTimeout(()=>setShowPwaBanner(true),3000);}
+    const handler=e=>{e.preventDefault();setDeferredPrompt(e);if(!dismissed)setTimeout(()=>setShowPwaBanner(true),2000);};
+    window.addEventListener('beforeinstallprompt',handler);
+    window.addEventListener('appinstalled',()=>{setShowPwaBanner(false);setIsInstalled(true);setDeferredPrompt(null);});
+    return()=>window.removeEventListener('beforeinstallprompt',handler);
+  },[]);
+
+  const handleInstall=async()=>{
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      const{outcome}=await deferredPrompt.userChoice;
+      if(outcome==='accepted'){setDeferredPrompt(null);setShowPwaBanner(false);}
+    }
+  };
+
+  const handleBannerDismiss=()=>{setShowPwaBanner(false);sessionStorage.setItem('pwa-banner-dismissed','1');};
+
+  // 탭 전환 시 항상 최상단으로 스크롤
+  const goTab=React.useCallback((idx)=>{
+    setActiveTab(prev=>typeof idx==='function'?idx(prev):idx);
+    window.scrollTo({top:0,behavior:'smooth'});
+  },[]);
+
+  // 상태
+  const [info,setInfo]=useState({
+    name:'만민 건축사 신사옥 신축공사', usage:'업무시설',
+    region:'서울특별시', importance:'2',
+    height:'12', floors:'3',
+    width:'10', depth:'15', area:'150', roofAngle:'5',
+  });
+  // 초기 total = 25×0.18 + 21×0.03 + 28×0.01 + 1.0 + 0.35 = 6.760
+  const [dead,setDead]=useState({items:[...DEFAULT_DL.map(x=>({...x}))],total:6.760});
+  const [live,setLive]=useState({cat:'사무실',sub:'일반 사무실',Lo:2.5,Lr:2.5,final:2.5,KLL:'2',AT:'',reduceApply:false,custom:false,customVal:''});
+  // 서울 기본값: Sg=0.5, Ce=1.0, Ct=1.0, Is=1.0, Cb=0.7 → Sf=0.7×1×1×1×0.5=0.350
+  // 경사 5° ≤ 30° → Cs=1.0, Sr=0.350, minS=0.5×1=0.500 → final=max(0.350,0.500)=0.500
+  const [snow,setSnow]=useState({Ce:'1.0',Ct:'1.0',Sg:0.5,Is:1.0,Cb:0.7,Sf:0.350,Sr:0.350,Cs:1.0,rawFinal:0.350,minS:0.500,final:0.500});
+  // 서울 H=12m 조도C: Kz=0.80×(12/10)^0.40=0.8605, qH=0.6e-3×0.8605×676×1=0.3490
+  // W_raw=0.3490×0.85×1.1=0.3263 < 0.675 최솟값 → final=0.6750
+  const [wind,setWind]=useState({exposure:'C',V0:26,Iw:1.0,Kz:0.8605,qH:0.3490,W_raw:0.3263,final:0.6750,Fw:81.0,terrain:'일반'});
+  // SC지반, RC보통모멘트골조(R=3.0,Ct=0.0466,x=0.9), 서울 Z=0.11g
+  // Ta=0.0466×12^0.9=0.430s, Ss=0.275g, SMS=1.2×0.275=0.330g, SDS=0.220g
+  // Ts=SD1/SDS, Cs=SDS/(R/Ie)=0.220/(3/1)=0.0733
+  const [seis,setSeis]=useState({soilType:'SC',sysIdx:'0',zone:'I',Z:0.11,Ie:1.0,Fa:1.2,Fv:1.7,R:3.0,Ta:0.430,Ss:0.2750,SDS:0.2200,SD1:0.1247,Cs:0.0733,W:'',V:0,final:0,customW:false});
+
+  // ── 지역·중요도·규모 변경 시 snow/wind/seis 자동 동기화 (탭 미방문 시도 반영) ──
+  useEffect(()=>{
+    const rd=REGION_DATA[info.region||'서울특별시']||{V0:26,Sg:0.5,zone:'I'};
+    const imp=IMPORTANCE[info.importance||'2']||{Iw:1.0,Is:1.0,Ie:1.0};
+    // snow 동기화
+    setSnow(s=>{
+      const CeL=n(s.Ce)||1.0,CtL=n(s.Ct)||1.0,CbL=0.7;
+      const SfL=CbL*CeL*CtL*imp.Is*rd.Sg;
+      const tL=n(info.roofAngle)||0;
+      const CsL=tL<=30?1.0:tL>=70?0:1.0-(tL-30)/40;
+      const SrL=SfL*CsL,rawL=tL>0?SrL:SfL;
+      const minSL=rd.Sg>1.0?1.0*imp.Is:rd.Sg*imp.Is;
+      return{...s,Sg:rd.Sg,Is:imp.Is,Sf:parseFloat(SfL.toFixed(4)),Sr:parseFloat(SrL.toFixed(4)),
+        Cs:parseFloat(CsL.toFixed(3)),rawFinal:parseFloat(rawL.toFixed(4)),
+        minS:parseFloat(minSL.toFixed(4)),final:parseFloat(Math.max(rawL,minSL).toFixed(4))};
+    });
+    // wind 동기화
+    setWind(w=>{
+      const expK=w.exposure||'C',exp=EXPOSURE[expK];
+      const H2=n(info.height)||12,B2=n(info.width)||10;
+      const Kz=Math.min(exp.Kz10*Math.pow(Math.max(H2,exp.zb)/10,2*exp.a),2.5);
+      const qH=0.6e-3*Kz*1.0*rd.V0*rd.V0*imp.Iw*imp.Iw;
+      const Wr=qH*0.85*1.1,Wf=Math.max(Wr,0.675);
+      return{...w,V0:rd.V0,Iw:imp.Iw,Kz:parseFloat(Kz.toFixed(4)),
+        qH:parseFloat(qH.toFixed(4)),W_raw:parseFloat(Wr.toFixed(4)),
+        final:parseFloat(Wf.toFixed(4)),Fw:parseFloat((Wf*H2*B2).toFixed(2))};
+    });
+    // seis 동기화
+    setSeis(s=>{
+      const Z2=rd.zone==='II'?0.07:0.11,Ie2=imp.Ie;
+      const sys2=STRUCT_SYS[n(s.sysIdx)||0]||STRUCT_SYS[0];
+      const soil2=SOIL[s.soilType||'SC'];
+      const H2=n(info.height)||12;
+      const Ta2=sys2.Ct*Math.pow(H2,sys2.x);
+      const Ss2=2.5*Z2,SMS2=soil2.Fa*Ss2,SDS2=(2/3)*SMS2;
+      const SM12=soil2.Fv*Z2,SD12=(2/3)*SM12;
+      const Ts2=SD12/SDS2;
+      let Csc=SDS2/(sys2.R/Ie2);
+      if(Ta2>Ts2)Csc=Math.min(Csc,SD12/(Ta2*(sys2.R/Ie2)));
+      const Csf=Math.max(Csc,0.01*Ie2);
+      const D2=n(dead.total)||0,L2=n(live.final)||0;
+      const Wa=s.customW?n(s.W):(D2+0.5*L2)*(n(info.area)||150)*(n(info.floors)||3);
+      return{...s,zone:rd.zone,Z:Z2,Ie:Ie2,Fa:soil2.Fa,Fv:soil2.Fv,R:sys2.R,
+        Ta:parseFloat(Ta2.toFixed(3)),Ss:parseFloat(Ss2.toFixed(4)),
+        SDS:parseFloat(SDS2.toFixed(4)),SD1:parseFloat(SD12.toFixed(4)),
+        Cs:parseFloat(Csf.toFixed(4)),W:parseFloat(Wa.toFixed(1)),
+        V:parseFloat((Csf*Wa).toFixed(2)),final:parseFloat((Csf*Wa).toFixed(2))};
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[info.region,info.importance,info.height,info.width,info.roofAngle,info.area,info.floors]);
+
+  const TABS=[
+    {icon:'🏢',label:'프로젝트',key:0},
+    {icon:'🧱',label:'고정하중 D',key:1},
+    {icon:'👥',label:'활하중 L',key:2},
+    {icon:'❄️',label:'적설하중 S',key:3},
+    {icon:'💨',label:'풍하중 W',key:4},
+    {icon:'🌍',label:'지진하중 E',key:5},
+    {icon:'⚖️',label:'하중조합',key:6},
+    {icon:'📄',label:'계산서',key:7},
+  ];
+
+  const isDone=i=>{
+    if(i===1)return n(dead.total)>0;
+    if(i===2)return n(live.final)>0;
+    if(i===3)return n(snow.final)>0;
+    if(i===4)return n(wind.final)>0;
+    if(i===5)return n(seis.Cs)>0;
+    if(i===6)return n(dead.total)>0&&n(live.final)>0;
+    return false;
+  };
+
+  const STEP_NAMES=['','고정하중','활하중','적설하중','풍하중','지진하중'];
+
+  // 요약바용 빠른 계산
+  const D_v=n(dead.total)||0, L_v=n(live.final)||0;
+  const S_v=n(snow.final)||0, W_v=n(wind.final)||0, Cs_v=n(seis.Cs)||0;
+  const E_v=Cs_v*D_v;
+  const maxComboVal=Math.max(
+    1.4*D_v, 1.2*D_v+1.6*L_v+0.5*S_v, 1.2*D_v+1.6*S_v+L_v,
+    1.2*D_v+1.6*S_v+0.5*W_v, 1.2*D_v+W_v+L_v+0.5*S_v,
+    0.9*D_v+W_v, 1.2*D_v+E_v+L_v+0.2*S_v, 0.9*D_v+E_v
+  );
+
+  return(
+    <>
+    {/* ══════════════ UI SHELL ══════════════ */}
+    <div id="ui-shell">
+
+      {/* ── 헤더 (기존 MANMIN 디자인 통일) ── */}
+      <header className="app-header no-print">
+        <div className="hdr-top">
+          <div className="hdr-left">
+            <div className="hdr-eyebrow">Structural Design Load Calculator · KDS 41 12 00 : 2022</div>
+            <h1 className="hdr-h1">🏗️ 건축물 설계하중 통합 산정</h1>
+            <div className="hdr-sub">
+              건축구조기준 적용 &nbsp;·&nbsp; 고정·활·적설·풍·지진 5종 → LRFD 하중조합 자동 산출
+            </div>
+            <div style={{marginTop:4}}><span className="hdr-manmin">MANMIN · Ver 1.0</span></div>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6,paddingBottom:2}}>
+            <div className="hdr-right">
+              <strong>KDS 41 12 00</strong><br/>
+              건축물 설계하중<br/>
+              <em>2022. 10. 11 개정</em>
+            </div>
+            <div className="ha">
+              <button className="hbtn teal" onClick={()=>setShowGuide(true)}>📋 가이드</button>
+              <button className="hbtn" onClick={()=>goTab(7)}>📄 계산서</button>
+              <button className="hbtn ac" onClick={()=>window.print()}>🖨️ 인쇄</button>
+            </div>
+          </div>
+        </div>
+        {/* 탭 (헤더 하단 통합) */}
+        <div className="hdr-tabs">
+          {TABS.map(t=>(
+            <button key={t.key}
+              className={`hdr-tab${activeTab===t.key?' on':''}${isDone(t.key)?' ok':''}`}
+              onClick={()=>goTab(t.key)}>
+              <span className="hdr-tn">{isDone(t.key)?'✓':t.key}</span>
+              {t.icon} {t.label}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      {/* ── 요약 바 ── */}
+      <div className="sum-bar no-print">
+        <div className="sum-bar-inner">
+          {[
+            ['D', D_v>0?`${f2(D_v)} kN/m²`:null],
+            ['L', L_v>0?`${f2(L_v)} kN/m²`:null],
+            ['S', S_v>0?`${f3(S_v)} kN/m²`:null],
+            ['W', W_v>0?`${f4(W_v)} kN/m²`:null],
+            ['Cs', Cs_v>0?f4(Cs_v):null],
+            ['지배하중', maxComboVal>0?`${f3(maxComboVal)} kN/m²`:null],
+          ].map(([k,v])=>(
+            <span key={k} className={`sum-chip${v?'':' na'}`}>{k}: <b>{v||'—'}</b></span>
+          ))}
+        </div>
+      </div>
+
+      {/* ── 본문 ── */}
+      <main className="main-body">
+        {/* 진행 바 */}
+        <div className="prog-bar no-print">
+          {[1,2,3,4,5,6].map((i,idx)=>(
+            <React.Fragment key={i}>
+              <div className="ps-item">
+                <div className={`ps-dot${i===activeTab?' act':isDone(i)?' done':' idle'}`}>{isDone(i)?'✓':i}</div>
+                <span style={{color:isDone(i)?'#15803d':i===activeTab?'#1e3a5f':'#94a3b8',fontWeight:isDone(i)||i===activeTab?700:400,fontSize:11}}>
+                  {STEP_NAMES[i]}
+                </span>
+              </div>
+              {idx<5&&<span className="ps-arrow">›</span>}
+            </React.Fragment>
+          ))}
+          <span style={{marginLeft:'auto',display:'flex',gap:5,flexWrap:'wrap',alignItems:'center'}}>
+            {isDone(1)&&<span className="tag bl" style={{fontSize:10}}>D={f2(D_v)}</span>}
+            {isDone(2)&&<span className="tag gn" style={{fontSize:10}}>L={f2(L_v)}</span>}
+            {isDone(3)&&<span className="tag bl" style={{fontSize:10}}>S={f3(S_v)}</span>}
+            {isDone(4)&&<span className="tag tl" style={{fontSize:10}}>W={f4(W_v)}</span>}
+            {isDone(5)&&<span className="tag rd" style={{fontSize:10}}>Cs={f4(Cs_v)}</span>}
+          </span>
+        </div>
+
+        {activeTab===0&&<StepProject info={info} setInfo={setInfo}/>}
+        {activeTab===1&&<StepDead dead={dead} setDead={setDead}/>}
+        {activeTab===2&&<StepLive live={live} setLive={setLive}/>}
+        {activeTab===3&&<StepSnow snow={snow} setSnow={setSnow} info={info}/>}
+        {activeTab===4&&<StepWind wind={wind} setWind={setWind} info={info}/>}
+        {activeTab===5&&<StepSeismic seis={seis} setSeis={setSeis} info={info} dead={dead} live={live}/>}
+        {activeTab===6&&<StepCombo dead={dead} live={live} snow={snow} wind={wind} seis={seis}/>}
+        {activeTab===7&&(
+          <div className="card">
+            <div className="ch"><span className="ch-icon">📄</span>
+              <div><div className="ch-t">A4 계산서 미리보기</div>
+              <div className="ch-s">[🖨️ 인쇄] 버튼 또는 우측 하단 FAB으로 인쇄 / PDF 저장</div></div>
+            </div>
+            <div style={{padding:'14px 16px'}}>
+              <PrintReport info={info} dead={dead} live={live} snow={snow} wind={wind} seis={seis}/>
+            </div>
+          </div>
+        )}
+
+        {/* 네비 버튼 */}
+        <div className="no-print" style={{display:'flex',gap:10,marginTop:16,justifyContent:'flex-end',flexWrap:'wrap'}}>
+          {activeTab>0&&<button className="btn-nav" onClick={()=>goTab(t=>Math.max(0,t-1))}>← 이전</button>}
+          {activeTab<7&&<button className="btn-nav fwd" onClick={()=>goTab(t=>Math.min(7,t+1))}>다음 단계 →</button>}
+          {activeTab===6&&<button className="btn-main gn" style={{maxWidth:200}} onClick={()=>goTab(7)}>📄 계산서 보기</button>}
+        </div>
+      </main>
+
+      {/* ── FAB ── */}
+      <div className="fab-wrap no-print">
+        <button className="fab am" onClick={()=>window.print()} title="인쇄">
+          <span className="fi-icon">🖨️</span>
+          <span className="fi-lbl">인쇄</span>
+        </button>
+        <button className="fab" onClick={()=>setShowGuide(true)} title="가이드·계산식">
+          <span className="fi-icon">📋</span>
+          <span className="fi-lbl">가이드</span>
+          <span className="fi-sub">계산식</span>
+        </button>
+      </div>
+
+      {/* ── 가이드 모달 ── */}
+      {showGuide&&<GuideModal onClose={()=>setShowGuide(false)}/>}
+
+      {/* ── 헬프 FAB (우측 하단 모달 열기) ── */}
+      <button className="help-fab no-print" onClick={()=>{setShowHelp(true);setHelpBadge(false);}} title="이용 방법 · 관련 자료">
+        {helpBadge&&<span className="badge">!</span>}
+        <span className="help-fab-icon">❓</span>
+        <span style={{fontSize:9,fontWeight:800}}>도움말</span>
+      </button>
+
+      {/* ── 헬프 모달 ── */}
+      {showHelp&&<HelpModal onClose={()=>setShowHelp(false)} onInstall={handleInstall} deferredPrompt={deferredPrompt}/>}
+
+      {/* ── PWA 설치 배너 ── */}
+      {showPwaBanner&&<PwaBanner onDismiss={handleBannerDismiss} onInstall={handleInstall} deferredPrompt={deferredPrompt} isIos={isIos}/>}
+    </div>{/* /ui-shell */}
+
+    {/* ══ 인쇄 전용 — #ui-shell 밖에 위치, @media print 에서만 표시 ══ */}
+    <div id="print-report-wrap">
+      <PrintReport info={info} dead={dead} live={live} snow={snow} wind={wind} seis={seis} forPrint={true}/>
+    </div>
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════
+   PWA 설치 배너 컴포넌트
+═══════════════════════════════════════ */
+function PwaBanner({ onDismiss, onInstall, deferredPrompt, isIos }) {
+  if (isIos) {
+    return (
+      <div className="pwa-banner">
+        <div className="pwa-banner-left">
+          <div className="pwa-banner-icon">🏗️</div>
+          <div className="pwa-banner-text">
+            <div className="pwa-ttl">홈 화면에 앱 추가</div>
+            <div className="pwa-sub ios-hint">
+              <span className="share-icon">⬆️</span>
+              공유 버튼 → '홈 화면에 추가' 탭
+            </div>
+          </div>
+        </div>
+        <div className="pwa-banner-btns">
+          <button className="pwa-btn-dismiss" onClick={onDismiss}>닫기</button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="pwa-banner">
+      <div className="pwa-banner-left">
+        <div className="pwa-banner-icon">🏗️</div>
+        <div className="pwa-banner-text">
+          <div className="pwa-ttl">⚡ 앱으로 설치하기</div>
+          <div className="pwa-sub">오프라인에서도 사용 · 홈 화면 바로가기 · 빠른 실행</div>
+        </div>
+      </div>
+      <div className="pwa-banner-btns">
+        <button className="pwa-btn-install" onClick={onInstall}>
+          📲 설치하기
+        </button>
+        <button className="pwa-btn-dismiss" onClick={onDismiss}>나중에</button>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════
+   헬프 모달 컴포넌트 (우측 하단)
+═══════════════════════════════════════ */
+function HelpModal({ onClose, onInstall, deferredPrompt }) {
+  const [tab, setTab] = React.useState(0);
+  const TABS = ['📖 이용 방법', '📚 관련 자료', '📲 앱 설치'];
+
+  const usageSteps = [
+    { title: '① 프로젝트 정보 입력', desc: '건물 용도, 지역(풍·지진 구역), 층수, 높이 등 기본 정보를 입력합니다.' },
+    { title: '② 고정하중 (D) 산정', desc: '바닥판, 마감재, 벽체 등 재료별 단위중량을 선택하면 자동으로 합산됩니다.' },
+    { title: '③ 활하중 (L) 산정', desc: '용도별 최소 바닥활하중 표에서 용도를 선택하면 KDS 기준값이 자동 적용됩니다.' },
+    { title: '④ 적설하중 (S) 산정', desc: '지역별 기본 지상적설하중, 지붕 경사도를 입력하면 설계 적설하중이 산출됩니다.' },
+    { title: '⑤ 풍하중 (W) 산정', desc: '풍속 구역, 노출 범주, 건물 형태에 따른 풍하중을 자동으로 계산합니다.' },
+    { title: '⑥ 지진하중 (E) 산정', desc: '지역계수, 중요도계수, 지반 분류, 구조 시스템(R값)으로 지진하중계수 Cs를 산출합니다.' },
+    { title: '⑦ 하중조합 확인', desc: 'LRFD 하중조합 8가지를 자동 산출하고 지배 하중조합을 강조 표시합니다.' },
+    { title: '⑧ 계산서 출력', desc: '인쇄 버튼을 눌러 A4 형식의 설계계산서를 PDF로 저장하거나 바로 인쇄합니다.' },
+  ];
+
+  const refs = [
+    { icon: '📋', cls: 'kds', title: 'KDS 41 12 00 건축물 설계하중', sub: '2022. 10. 11 개정 — 국가건설기준', badge: 'KDS', url: 'https://www.kcsc.re.kr' },
+    { icon: '📋', cls: 'kds', title: 'KDS 41 17 00 건축물 내진설계기준', sub: '2019 개정 — 내진설계 일반', badge: 'KDS', url: 'https://www.kcsc.re.kr' },
+    { icon: '📋', cls: 'kds', title: 'KDS 41 19 00 기초구조 설계기준', sub: '기초 구조물 설계 기준', badge: 'KDS', url: 'https://www.kcsc.re.kr' },
+    { icon: '📄', cls: 'ref', title: '건축구조기준 일부 개정 고시문', sub: '국토교통부 고시 — 최신 개정 사항', badge: '고시', badgeCls: 'gn', url: 'https://www.molit.go.kr' },
+    { icon: '🌐', cls: 'ref', title: '국가건설기준센터 (KCSC)', sub: '건설기준 원문 무료 제공', badge: 'Web', badgeCls: 'gn', url: 'https://www.kcsc.re.kr' },
+  ];
+
+  return (
+    <div className="help-mo-ov" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div className="help-mo-box">
+        <div className="help-mo-hd">
+          <div className="help-mo-hdr">
+            <div>
+              <div style={{fontSize:11,fontWeight:600,opacity:.65,letterSpacing:'.15em',textTransform:'uppercase',marginBottom:4}}>
+                MANMIN · 설계하중 도우미
+              </div>
+              <div style={{fontSize:15,fontWeight:900}}>📖 이용 안내 · 관련 자료</div>
+            </div>
+            <button className="mo-cls" onClick={onClose}>✕</button>
+          </div>
+          <div className="help-mo-tabs">
+            {TABS.map((t,i)=>(
+              <button key={i} className={`help-mo-tab${tab===i?' on':''}`} onClick={()=>setTab(i)}>{t}</button>
+            ))}
+          </div>
+        </div>
+        <div className="help-mo-body">
+          {tab === 0 && (
+            <div>
+              <div style={{background:'#f0f9ff',border:'1px solid #bae6fd',borderRadius:8,padding:'10px 13px',fontSize:11,color:'#0c4a6e',marginBottom:12,lineHeight:1.8}}>
+                <b>💡 사용 순서:</b> 탭을 순서대로 입력하면 각 단계 완료 시 ✓ 표시가 나타납니다.
+                모든 하중 입력 후 <b>하중조합</b> 탭에서 지배 설계하중을 확인하세요.
+              </div>
+              {usageSteps.map((s,i)=>(
+                <div key={i} className="usage-step">
+                  <div className="step-num">{i+1}</div>
+                  <div className="step-content">
+                    <div className="step-title">{s.title}</div>
+                    <div className="step-desc">{s.desc}</div>
+                  </div>
+                </div>
+              ))}
+              <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'10px 13px',fontSize:11,color:'#78350f',marginTop:12,lineHeight:1.8}}>
+                ⚠️ 본 프로그램은 <b>KDS 41 12 00 : 2022</b> 기준을 따르며, 최종 설계값은 반드시 구조기술사의 검토·확인이 필요합니다.
+              </div>
+            </div>
+          )}
+          {tab === 1 && (
+            <div>
+              <div style={{fontSize:11,color:'var(--muted)',marginBottom:12,lineHeight:1.7}}>
+                본 프로그램에 적용된 기준 및 참고 자료입니다. 클릭하면 해당 기관 사이트로 이동합니다.
+              </div>
+              {refs.map((r,i)=>(
+                <a key={i} className="ref-item" href={r.url} target="_blank" rel="noopener noreferrer">
+                  <div className={`ref-item-icon ${r.cls}`}>{r.icon}</div>
+                  <div className="ref-item-info">
+                    <div className="ref-item-title">{r.title}</div>
+                    <div className="ref-item-sub">{r.sub}</div>
+                  </div>
+                  <span className={`ref-item-badge${r.badgeCls?' '+r.badgeCls:''}`}>{r.badge}</span>
+                </a>
+              ))}
+            </div>
+          )}
+          {tab === 2 && (
+            <div>
+              <div className="pwa-guide-card">
+                <h3>⚡ 앱으로 설치하면?</h3>
+                <div className="pwa-guide-step"><span className="n">✓</span>인터넷 없이 오프라인 사용 가능</div>
+                <div className="pwa-guide-step"><span className="n">✓</span>홈 화면에 아이콘 추가 — 앱처럼 실행</div>
+                <div className="pwa-guide-step"><span className="n">✓</span>브라우저 UI 없이 전체 화면 사용</div>
+                <div className="pwa-guide-step"><span className="n">✓</span>자동 업데이트 (재설치 불필요)</div>
+              </div>
+              <div style={{fontSize:12,fontWeight:800,color:'var(--navy)',marginBottom:8}}>🖥️ PC / Android</div>
+              <button
+                className="pwa-install-btn-full"
+                onClick={onInstall}
+                disabled={!deferredPrompt}
+              >
+                {deferredPrompt ? '📲 이 기기에 지금 설치하기' : '✅ 이미 설치됨 또는 설치 불가 환경'}
+              </button>
+              <div style={{height:14}}/>
+              <div style={{fontSize:12,fontWeight:800,color:'var(--navy)',marginBottom:8}}>🍎 iPhone / iPad (iOS Safari)</div>
+              <div style={{background:'#f8fafc',borderRadius:10,padding:'12px 14px'}}>
+                <div className="pwa-guide-step" style={{padding:'4px 0'}}><span className="n">1</span>Safari 하단 <b>⬆️ 공유</b> 버튼 탭</div>
+                <div className="pwa-guide-step" style={{padding:'4px 0'}}><span className="n">2</span><b>'홈 화면에 추가'</b> 선택</div>
+                <div className="pwa-guide-step" style={{padding:'4px 0'}}><span className="n">3</span>우측 상단 <b>'추가'</b> 탭하여 완료</div>
+              </div>
+              <div style={{fontSize:10.5,color:'var(--muted)',marginTop:10,lineHeight:1.7}}>
+                💡 PWA(Progressive Web App)는 별도 앱 스토어 없이 웹 브라우저에서 바로 설치할 수 있는 앱입니다.
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   앱 마운트
+══════════════════════════════════════ */
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+
+<!-- ── Service Worker 등록 ── -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js')
+      .then(function(reg) {
+        console.log('[SW] 등록 성공 — MANMIN 설계하중 PWA:', reg.scope);
+        // 업데이트 감지
+        reg.addEventListener('updatefound', function() {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', function() {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('[SW] 새 버전 사용 가능 — 페이지 새로고침 권장');
+            }
+          });
+        });
+      })
+      .catch(function(err) {
+        console.warn('[SW] 등록 실패:', err);
+      });
+  });
+}
+</script>
+</body>
+</html>
