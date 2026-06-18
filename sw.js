@@ -3,8 +3,7 @@
    KDS 41 12 00 : 2022  /  MANMIN Ver 1.0
    ═══════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'manmin-load-v1.0';
-const STATIC_ASSETS = [
+const CACHE_NAME = 'manmin-load-v1.1';const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
