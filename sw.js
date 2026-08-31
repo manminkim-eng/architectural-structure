@@ -1,15 +1,19 @@
 /* ═══════════════════════════════════════════════════════════
    MANMIN 설계하중 PWA — Service Worker
-   KDS 41 12 00 : 2022  /  MANMIN Ver 1.0
+   KDS 41 12 00 : 2022  /  MANMIN Ver 5.0
    ═══════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'manmin-load-v1.1';const STATIC_ASSETS = [
+const CACHE_NAME = 'manmin-load-v5.0';
+const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
-  'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=Noto+Sans+Mono:wght@400;600;700&family=Orbitron:wght@700;900&display=swap',
+  /* v5.0 — 로컬 폴백 폰트. CDN 차단·오프라인 시 한글 깨짐 방지 */
+  './assets/fonts/manmin-fonts.css',
+  './assets/fonts/NotoSansKR-var.woff2',
+  'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@700;900&display=swap',
   'https://unpkg.com/react@18/umd/react.production.min.js',
   'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',
   'https://unpkg.com/@babel/standalone/babel.min.js'
