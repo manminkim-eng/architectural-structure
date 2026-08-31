@@ -196,14 +196,16 @@ input,select{font-size:13px;}
   font-size:26px;font-weight:900;
   letter-spacing:.04em;line-height:1.2;
 }
+/* v5.0 — 마스터와 동일하게 block(인라인 흐름). flex + gap 이면 텍스트와 각인이
+   별개 항목으로 끊겨 한 줄 안에서 자연스럽게 이어지지 않는다. */
 .hdr-sub{
-  font-size:11px;margin-top:8px;opacity:.85;letter-spacing:.02em;
-  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  font-size:11px;margin-top:8px;opacity:.85;letter-spacing:.02em;line-height:1.7;
 }
 .hdr-manmin{
   font-family:'Orbitron',sans-serif!important;
   font-weight:900;font-size:12px;color:#fbbf24;
   letter-spacing:.08em;text-shadow:0 0 10px rgba(251,191,36,.45);
+  white-space:nowrap;display:inline-block;
 }
 .hdr-right{
   text-align:right;opacity:.75;font-size:11px;
@@ -404,9 +406,9 @@ input,select{font-size:13px;}
   border:1px solid #e2e8f0;border-bottom:none;
   border-radius:6px 6px 0 0;
 }
-/* 표 최소폭 680px — 태블릿(768px)까지는 스크롤 없이 들어가고
-   그 이하에서만 스크롤이 생기므로 힌트도 768px 기준으로 띄운다. */
-@media(max-width:768px){.tbl-hint{display:flex;}}
+/* v5.0 — 표시 시점을 고정 브레이크포인트가 아니라 **실제 스크롤 발생 여부**로 판정한다.
+   표 폭이 도구마다 달라(46번 680px · 20번 560px) 고정값으로는 맞출 수 없다. */
+.tbl-hint.on{display:flex;}
 
 .dl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:0 0 6px 6px;}
 .dl-table{width:100%;border-collapse:collapse;min-width:680px;}
@@ -651,7 +653,7 @@ hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
   .hdr-eyebrow{display:none;}
   .hdr-h1{font-size:18px;}   /* v5.0 — 마스터 모바일 규격 18px */
   /* .hdr-right 는 768px 블록으로 이관 — 마스터와 동일 시점 */
-  .hdr-sub{font-size:10px;gap:4px;margin-top:6px;}
+  .hdr-sub{font-size:10.5px;margin-top:6px;line-height:1.65;}
   .hdr-manmin{font-size:11px;}
   .hdr-tabs{padding:4px 14px 0;margin-top:16px;}
   .hdr-tab{font-size:11px;padding:8px 10px;gap:3px;}
@@ -2121,7 +2123,7 @@ function PrintReport({info,dead,live,snow,wind,seis,forPrint=false}){
                 return(
                   <tr key={i} style={{background:isGov?'#fffbeb':i%2===0?'white':'#f8fafc'}}>
                     <td style={{...TD(),fontWeight:700,color:isGov?'#dc2626':'inherit'}}>{c.id}</td>
-                    <td style={{...TD({textAlign:'left',fontFamily:"'Noto Sans KR',sans-serif"}),paddingLeft:9,fontSize:10}}>{c.label} &nbsp;<span style={{color:'#94a3b8',fontSize:9}}>({c.ref})</span></td>
+                    <td style={{...TD({textAlign:'left',fontFamily:"'Noto Sans KR',sans-serif"}),paddingLeft:9,fontSize:10}}>{c.label} &nbsp;<span style={{color:'#6b7280',fontSize:9}}>({c.ref})</span></td>
                     <td style={{...TD({textAlign:'left'}),fontSize:10,color:'#475569',paddingLeft:9,fontFamily:"'JetBrains Mono','Noto Sans KR','Noto Sans KR Local',monospace"}}>{c.expand}</td>
                     <td style={{...TD(),fontWeight:isGov?900:600,fontSize:isGov?13:11,color:isGov?'#0f2240':'inherit'}}>{f3(c.val)}</td>
                     <td style={{...TD({fontFamily:"'Noto Sans KR',sans-serif"}),fontWeight:isGov?900:400,color:isGov?'#dc2626':'#9ca3af',fontSize:10}}>{isGov?'▶ 설계 지배':''}</td>
@@ -2316,7 +2318,7 @@ function App(){
             <h1 className="hdr-h1">🏗️ 건축물 설계하중 통합 산정</h1>
             {/* v5.0 — 마스터와 동일하게 각인을 부제 줄 끝에 인라인 배치한다. */}
             <div className="hdr-sub">
-              건축구조기준 적용 &nbsp;·&nbsp; 고정·활·적설·풍·지진 5종 → LRFD 하중조합 자동 산출&nbsp;
+              건축구조기준 적용 · 고정·활·적설·풍·지진 5종 → LRFD 하중조합 자동 산출
               <span className="hdr-manmin">MANMIN · Ver-5.0</span>
             </div>
           </div>
@@ -2987,6 +2989,26 @@ if ('serviceWorker' in navigator) {
 })();
 </script>
 
+
+<script>
+/* ═══════ 표 좌우 스크롤 힌트 — 실측 감지 v5.0 (§4-13) ═══════ */
+(function(){
+  function upd(){
+    document.querySelectorAll('.tbl-hint').forEach(function(h){
+      var box=h.nextElementSibling;
+      if(!box){ h.classList.remove('on'); return; }
+      h.classList.toggle('on', box.scrollWidth > box.clientWidth + 1);
+    });
+  }
+  window.mmUpdateTblHints = upd;
+  var t;
+  function schedule(){ clearTimeout(t); t=setTimeout(upd,150); }
+  document.addEventListener('DOMContentLoaded', function(){ upd(); setTimeout(upd,400); });
+  window.addEventListener('resize', schedule);
+  /* React 렌더 후에도 반영되도록 주기 감시(초기 3초) */
+  var n=0, iv=setInterval(function(){ upd(); if(++n>10) clearInterval(iv); }, 300);
+})();
+</script>
 
 </body>
 </html>
