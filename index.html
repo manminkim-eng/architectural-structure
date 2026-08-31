@@ -392,8 +392,24 @@ input,select{font-size:13px;}
 .ps-arrow{color:var(--bd);font-size:12px;}
 
 /* ════ 고정하중 테이블 ════ */
-.dl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.dl-table{width:100%;border-collapse:collapse;min-width:520px;}
+/* ═══ 표 좌우 스크롤 v5.0 — 소방 마스터 방식 준용 ═══
+   좁은 화면에서 표를 압축하지 않는다. 원래 폭을 유지한 채 좌우 스크롤로 접근한다.
+   압축하면 입력칸이 좁아져 오히려 가독성·조작성이 떨어진다. */
+.tbl-hint{
+  display:none;
+  align-items:center;gap:6px;justify-content:center;
+  font-size:11px;font-weight:700;color:#6b7280;
+  padding:6px 0;
+  background:#f8fafc;
+  border:1px solid #e2e8f0;border-bottom:none;
+  border-radius:6px 6px 0 0;
+}
+/* 표 최소폭 680px — 태블릿(768px)까지는 스크롤 없이 들어가고
+   그 이하에서만 스크롤이 생기므로 힌트도 768px 기준으로 띄운다. */
+@media(max-width:768px){.tbl-hint{display:flex;}}
+
+.dl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:0 0 6px 6px;}
+.dl-table{width:100%;border-collapse:collapse;min-width:680px;}
 .dl-table th{background:#f0f4f8;padding:7px 8px;text-align:left;font-weight:700;color:#374151;border-bottom:2px solid var(--bd);font-size:11.5px;}
 .dl-table td{padding:5px 6px;border-bottom:1px solid var(--bd2);}
 .dl-table tr:last-child td{border-bottom:none;}
@@ -646,8 +662,9 @@ hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
   .prog-bar{gap:5px;padding:8px 10px;}
   .ps-item span{display:none;}
   /* 고정하중 테이블 모바일 — 자동계산·삭제 컬럼 압축 */
-  .dl-table{min-width:380px;}
-  .dl-table th:nth-child(5),.dl-table td:nth-child(5){display:none;} /* 자동계산 체크 숨김 */
+  /* v5.0 — 모바일 압축(380px)과 자동계산 컬럼 숨김을 폐지했다.
+     칸이 좁아져 가독성이 떨어지고, 숨긴 컬럼은 아예 조작할 수 없었다.
+     이제 min-width 640px 을 유지한 채 .dl-wrap 의 좌우 스크롤로 접근한다. */
   /* 결과 패널 값 크기 */
   .rval.lg{font-size:15px;}
   /* 최종 패널 그리드 */
@@ -1120,6 +1137,12 @@ function StepDead({dead,setDead}){
     <div className="card">
       <div className="ch"><span className="ch-icon">🧱</span><div><div className="ch-t">고정하중 (D) 산정</div><div className="ch-s">KDS 41 12 00 2절 — 단위면적당 층 고정하중 합산</div></div></div>
       <div className="cb">
+        {/* 모바일·태블릿 좌우 스크롤 힌트 (≤860px) */}
+        <div className="tbl-hint no-print">
+          <span style={{fontSize:14}}>←</span>
+          <span>좌우로 스크롤하여 모든 항목 입력</span>
+          <span style={{fontSize:14}}>→</span>
+        </div>
         <div className="dl-wrap">
           <table className="dl-table">
             <thead>
@@ -1650,8 +1673,14 @@ function StepCombo({dead,live,snow,wind,seis}){
           ))}
         </div>
 
-        <div style={{overflowX:'auto'}}>
-          <table className="ctable" style={{minWidth:500}}>
+        {/* 모바일·태블릿 좌우 스크롤 힌트 (≤860px) */}
+        <div className="tbl-hint no-print">
+          <span style={{fontSize:14}}>←</span>
+          <span>좌우로 스크롤하여 전체 하중조합 확인</span>
+          <span style={{fontSize:14}}>→</span>
+        </div>
+        <div style={{overflowX:'auto',WebkitOverflowScrolling:'touch',borderRadius:'0 0 6px 6px'}}>
+          <table className="ctable" style={{minWidth:560}}>
             <thead><tr>
               <th style={{width:46}}>조합</th>
               <th style={{textAlign:'left',paddingLeft:8}}>하중조합 식</th>
