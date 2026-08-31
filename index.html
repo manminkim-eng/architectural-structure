@@ -172,10 +172,11 @@ input,select{font-size:13px;}
 #ui-shell{display:flex;flex-direction:column;min-height:100vh;}
 
 /* ════ 헤더 — 기존 MANMIN 디자인 통일 ════ */
+/* v5.0 — 헤더 고정 해제. 소방 마스터에 position:sticky 는 0건이다.
+   3단 헤더가 커서 고정하면 모바일 화면을 상시 점유하고, 탭이 헤더 밖이면 탭만 사라진다. */
 .app-header{
   background:linear-gradient(135deg,#0a1628 0%,#1e3a5f 50%,#2d5186 100%);
-  color:#fff;padding:0;position:sticky;top:0;z-index:600;
-  box-shadow:0 2px 20px rgba(0,0,0,.32);
+  color:#fff;padding:0;box-shadow:0 2px 20px rgba(0,0,0,.32);
 }
 /* ═══ 헤더 높이 v5.0 — 소방 마스터 실측값 (데스크탑·태블릿 162.2px)
    구성 : 상단패딩 20 + 본문 78.2 + 간격 16 + 탭패딩 4 + 탭 44 = 162.2 ═══ */
@@ -2315,7 +2316,7 @@ function App(){
         <div className="hdr-top">
           <div className="hdr-left">
             <div className="hdr-eyebrow">Structural Design Load Calculator · KDS 41 12 00 : 2022</div>
-            <h1 className="hdr-h1">🏗️ 건축물 설계하중 통합 산정</h1>
+            <h1 className="hdr-h1">건축물 설계하중 통합 산정</h1>
             {/* v5.0 — 마스터와 동일하게 각인을 부제 줄 끝에 인라인 배치한다. */}
             <div className="hdr-sub">
               건축구조기준 적용 · 고정·활·적설·풍·지진 5종 → LRFD 하중조합 자동 산출
