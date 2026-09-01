@@ -1,9 +1,15 @@
 /* ═══════════════════════════════════════════════════════════
    MANMIN 설계하중 PWA — Service Worker
    KDS 41 12 00 : 2022  /  MANMIN Ver 5.0
+
+   2026-08-31 — 캐시 버전 v5.0 → v5.0.1
+   index.html 을 갱신했는데도(타이틀 심볼 삭제·헤더 고정 해제)
+   캐시명이 그대로여서 activate 가 옛 캐시를 지우지 않았다.
+   Cache-first 전략이라 기존 사용자에게는 구버전이 계속 제공된다.
+   내용을 바꿀 때마다 이 버전을 함께 올릴 것.
    ═══════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'manmin-load-v5.0';
+const CACHE_NAME = 'manmin-load-v5.0.1';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -48,11 +54,27 @@ self.addEventListener('activate', event => {
   );
 });
 
-/* ── Fetch: Cache-first, Network fallback ── */
+/* ── Fetch: HTML 은 Network-first, 그 외는 Cache-first ── */
 self.addEventListener('fetch', event => {
   // POST 요청 및 크롬 익스텐션은 캐시 제외
   if (event.request.method !== 'GET') return;
   if (event.request.url.startsWith('chrome-extension://')) return;
+
+  /* 2026-08-31 — HTML 문서는 Network-first 로 바꾼다.
+     Cache-first 였을 때 index.html 을 갱신해도 캐시가 우선해
+     구버전 화면이 계속 나왔다. 오프라인에서는 캐시로 폴백한다. */
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request).then(response => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      }).catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then(cached => {
