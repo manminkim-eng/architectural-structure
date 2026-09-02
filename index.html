@@ -237,12 +237,6 @@ input,select{font-size:13px;}
    번호(0~7)는 진행 여부와 무관하게 항상 노출한다. */
 /* v5.0-HDR (2026-09-02 확정) — 활성 탭 단색 배경 + 강조색 바 (01 마스터 구조) */
 .hdr-tab.on{color:#fff;border-bottom-color:#fbbf24;background:#1d4ed8;}
-.hdr-tn{
-  background:rgba(255,255,255,.18);color:rgba(255,255,255,.8);
-  border-radius:50%;width:18px;height:18px;font-size:9px;font-weight:700;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-}
-.hdr-tab.on .hdr-tn{background:#fbbf24;color:#1e3a5f;}
 /* 요약 바 */
 .sum-bar{
   background:#0f172a;padding:10px 0;   /* v5.0 — 마스터 실측 38px · v5.0-HDR 하단선 폐지 */
@@ -648,7 +642,7 @@ hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
   .fpg{grid-template-columns:repeat(2,1fr);}
   /* 모바일 헤더 — v5.0: 마스터는 상단패딩 20px·간격 16px 을 전 구간 유지하고
      좌우 여백만 24→14px 로 줄인다. 높이 규격을 흐트러뜨리지 않는다. */
-  .hdr-top{padding:20px 14px 0;gap:8px;}
+  .hdr-top{padding:20px 14px 0;gap:0 8px;}   /* v5.0-HDR — 빈 우측 블록의 유령 row-gap 제거 → 168.6 */
   /* v5.0-HDR (2026-09-02 확정) — eyebrow 표시 · sub 11px · 각인 12px · 탭 44px 유지(§17-10) : 01 마스터 실측 */
   .hdr-h1{font-size:18px;}   /* v5.0 — 마스터 모바일 규격 18px */
   .hdr-tabs{padding:4px 14px 0;margin-top:16px;}
@@ -670,9 +664,7 @@ hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
 /* v5.0 — 최소폭 브레이크포인트도 마스터와 동일하게 정렬(400→420) */
 @media(max-width:420px){
   .fpg{grid-template-columns:repeat(2,1fr);}
-  /* 번호(0~7)는 좁은 화면에서도 유지한다. 대신 원을 줄여 폭을 확보한다. */
-  .hdr-tn{width:15px;height:15px;font-size:8px;}
-  .hdr-tab{font-size:10px;padding:7px 6px;gap:2px;}
+  /* v5.0-HDR — 420px 탭 축소(10px · 7px 6px → 높이 31px) 폐지. 탭은 전 폭 44px/13px 로 고정(§17-10 · MIN 2026-09-02 "모바일에서 단추가 작다") */
 }
 </style>
 </head>
@@ -2318,7 +2310,7 @@ function App(){
               <span className="hdr-manmin">MANMIN · Ver-5.0</span>
             </div>
           </div>
-          <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6,paddingBottom:2}}>
+          <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}}>
             <div className="hdr-right">
               <strong>KDS 41 12 00</strong><br/>
               건축물 설계하중<br/>
@@ -2334,7 +2326,7 @@ function App(){
             <button key={t.key}
               className={`hdr-tab${activeTab===t.key?' on':''}`}
               onClick={()=>goTab(t.key)}>
-              <span className="hdr-tn">{t.key}</span>
+              {/* v5.0-HDR (2026-09-02 MIN 확정) — 비소방 도구는 심벌 + 명칭. 번호는 소방 웹에만 둔다 */}
               {t.icon} {t.label}
             </button>
           ))}
