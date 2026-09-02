@@ -182,7 +182,7 @@ input,select{font-size:13px;}
    구성 : 상단패딩 20 + 본문 78.2 + 간격 16 + 탭패딩 4 + 탭 44 = 162.2 ═══ */
 .hdr-top{
   max-width:1300px;margin:0 auto;
-  display:flex;align-items:flex-end;justify-content:space-between;
+  display:flex;align-items:flex-start;justify-content:space-between;   /* v5.0-HDR — 마스터 flex-start */
   padding:20px 24px 0;gap:16px;flex-wrap:wrap;
 }
 .hdr-left{}
@@ -200,7 +200,7 @@ input,select{font-size:13px;}
 /* v5.0 — 마스터와 동일하게 block(인라인 흐름). flex + gap 이면 텍스트와 각인이
    별개 항목으로 끊겨 한 줄 안에서 자연스럽게 이어지지 않는다. */
 .hdr-sub{
-  font-size:11px;margin-top:8px;opacity:.85;letter-spacing:.02em;line-height:1.7;
+  font-size:11px;margin-top:8px;opacity:.85;letter-spacing:.02em;line-height:normal;   /* v5.0-HDR — 17px → 78.2/162.2 */
 }
 .hdr-manmin{
   font-family:'Orbitron',sans-serif!important;
@@ -212,10 +212,10 @@ input,select{font-size:13px;}
   text-align:right;opacity:.75;font-size:11px;
   /* v5.0 — 마스터는 line-height 지정이 없다(normal≈1.5).
      1.7 이면 우측 블록이 좌측보다 커져 헤더 높이 규격(78.2px)을 밀어낸다. */
-  line-height:1.5;flex-shrink:0;padding-bottom:4px;
+  line-height:normal;flex-shrink:0;   /* v5.0-HDR */
 }
 .hdr-right strong{font-size:13px;font-weight:700;opacity:1;}
-.hdr-right em{font-size:10px;color:#93c5fd;font-style:normal;}
+.hdr-right em{font-size:10px;color:#fbbf24;font-style:normal;display:block;margin-top:4px;}
 /* 탭이 헤더 안에 통합 */
 .hdr-tabs{
   max-width:1300px;margin:0 auto;
@@ -229,30 +229,30 @@ input,select{font-size:13px;}
   color:rgba(255,255,255,.75);font-size:13px;font-weight:700;letter-spacing:.02em;
   padding:11px 16px;cursor:pointer;
   transition:color .15s,border-color .15s,background .15s;
-  display:flex;align-items:center;gap:5px;white-space:nowrap;
-  border-radius:6px 6px 0 0;   /* v5.0 — margin-bottom:-1px 제거(탭 높이 44px 확보) */
+  display:flex;align-items:center;gap:5px;white-space:nowrap;line-height:normal;
+  /* v5.0-HDR — 상단 radius 폐지(마스터 0) · margin-bottom:-1px 제거(탭 높이 44px 확보) */
 }
 .hdr-tab:hover{color:rgba(255,255,255,.88);background:rgba(255,255,255,.06);}
 /* v5.0 — 소방 마스터 준용. 완료(✓) 상태 표시를 없애고 활성 탭만 강조한다.
    번호(0~7)는 진행 여부와 무관하게 항상 노출한다. */
-.hdr-tab.on{color:#fff;border-bottom-color:#4ade80;font-weight:800;background:rgba(255,255,255,.08);}
+/* v5.0-HDR (2026-09-02 확정) — 활성 탭 단색 배경 + 강조색 바 (01 마스터 구조) */
+.hdr-tab.on{color:#fff;border-bottom-color:#fbbf24;background:#1d4ed8;}
 .hdr-tn{
   background:rgba(255,255,255,.18);color:rgba(255,255,255,.8);
   border-radius:50%;width:18px;height:18px;font-size:9px;font-weight:700;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
-.hdr-tab.on .hdr-tn{background:#4ade80;color:#052e16;}
+.hdr-tab.on .hdr-tn{background:#fbbf24;color:#1e3a5f;}
 /* 요약 바 */
 .sum-bar{
-  background:#0f172a;padding:10px 0;   /* v5.0 — 마스터 실측 38px */
-  border-bottom:1px solid rgba(255,255,255,.06);
+  background:#0f172a;padding:10px 0;   /* v5.0 — 마스터 실측 38px · v5.0-HDR 하단선 폐지 */
 }
 .sum-bar-inner{
   max-width:1300px;margin:0 auto;padding:0 24px;
-  display:flex;gap:16px;flex-wrap:wrap;align-items:center;
+  display:flex;gap:14px;flex-wrap:wrap;align-items:center;   /* v5.0-HDR gap 14 */
 }
-.sum-chip{font-size:11.5px;color:#94a3b8;display:flex;align-items:center;gap:4px;}
-.sum-chip b{color:#4ade80;font-family:'JetBrains Mono','Noto Sans KR','Noto Sans KR Local',monospace!important;font-size:12px;}
+.sum-chip{font-size:12px;color:#94a3b8;display:inline;line-height:normal;}   /* v5.0-HDR — 마스터 span 인라인(18px → 스트립 38px) */
+.sum-chip b{color:#fbbf24;font-family:'JetBrains Mono','Noto Sans KR','Noto Sans KR Local',monospace!important;font-size:12px;font-weight:700;}
 .sum-chip.na b{color:#475569;}
 /* v5.0 — 헤더 버튼(.ha / .hbtn) 규칙 폐지.
    가이드·계산서·인쇄 버튼을 걷어내며 사용처가 0건이 되었다. */
@@ -636,9 +636,7 @@ hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
 /* ════ 반응형 태블릿 ════ */
 @media(max-width:1024px){
   /* v5.0 — 마스터는 이 구간에서 헤더 패딩을 건드리지 않는다(상단 20px 고정). */
-  .hdr-right{font-size:10px;}
-  .hdr-right strong{font-size:12px;}
-  .sum-bar-inner{gap:12px;padding:0 20px;}
+  /* v5.0-HDR — 우측 근거·요약바 축소 규칙 폐지 (마스터는 1024 에서 불변) */
   .main-body{padding:0 12px 130px;}
 }
 /* ════ 반응형 모바일 ════ */
@@ -651,16 +649,12 @@ hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
   /* 모바일 헤더 — v5.0: 마스터는 상단패딩 20px·간격 16px 을 전 구간 유지하고
      좌우 여백만 24→14px 로 줄인다. 높이 규격을 흐트러뜨리지 않는다. */
   .hdr-top{padding:20px 14px 0;gap:8px;}
-  .hdr-eyebrow{display:none;}
+  /* v5.0-HDR (2026-09-02 확정) — eyebrow 표시 · sub 11px · 각인 12px · 탭 44px 유지(§17-10) : 01 마스터 실측 */
   .hdr-h1{font-size:18px;}   /* v5.0 — 마스터 모바일 규격 18px */
-  /* .hdr-right 는 768px 블록으로 이관 — 마스터와 동일 시점 */
-  .hdr-sub{font-size:10.5px;margin-top:6px;line-height:1.65;}
-  .hdr-manmin{font-size:11px;}
   .hdr-tabs{padding:4px 14px 0;margin-top:16px;}
-  .hdr-tab{font-size:11px;padding:8px 10px;gap:3px;}
   /* 모바일 요약바 */
-  .sum-bar-inner{gap:8px;padding:0 14px;flex-wrap:wrap;}
-  .sum-chip{font-size:10.5px;}
+  .sum-bar-inner{gap:14px;padding:0 14px;flex-wrap:wrap;}
+  .sum-chip{font-size:11px;}
   /* 모바일 진행바 */
   .prog-bar{gap:5px;padding:8px 10px;}
   .ps-item span{display:none;}
@@ -2315,7 +2309,8 @@ function App(){
       <header className="app-header no-print">
         <div className="hdr-top">
           <div className="hdr-left">
-            <div className="hdr-eyebrow">Structural Design Load Calculator · KDS 41 12 00 : 2022</div>
+            {/* v5.0-HDR — 375px 1줄 유지(≤40자). 연도는 hdr-right 에 있다 */}
+            <div className="hdr-eyebrow">Structural Design Load · KDS 41 12 00</div>
             <h1 className="hdr-h1">건축물 설계하중 통합 산정</h1>
             {/* v5.0 — 마스터와 동일하게 각인을 부제 줄 끝에 인라인 배치한다. */}
             <div className="hdr-sub">

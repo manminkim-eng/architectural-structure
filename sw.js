@@ -9,7 +9,10 @@
    내용을 바꿀 때마다 이 버전을 함께 올릴 것.
    ═══════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'manmin-load-v5.0.1';
+/* §17-1 (2026-09-02) — 도구 고유 접두어. 종전 `!== CACHE_NAME` 필터는 같은 origin 의 39종 캐시를 전부 지웠다 */
+const PREFIX     = 'load-';
+const CACHE_NAME = 'load-v5.0.2';
+const ORPHAN     = ['manmin-load-v5.0', 'manmin-load-v5.0.1'];
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -44,7 +47,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(cacheNames =>
       Promise.all(
         cacheNames
-          .filter(name => name !== CACHE_NAME)
+          .filter(name => name !== CACHE_NAME && (name.indexOf(PREFIX) === 0 || ORPHAN.indexOf(name) !== -1))
           .map(name => {
             console.log('[SW] 구버전 캐시 삭제:', name);
             return caches.delete(name);
