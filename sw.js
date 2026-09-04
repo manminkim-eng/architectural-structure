@@ -1,4 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
+   R25 회차 2026-09-04 — 자기 접두어 캐시 조회 · cors 프리캐시 · opaque 가드 · 캐시명 v5.0.3 (S10)
    MANMIN 설계하중 PWA — Service Worker
    KDS 41 12 00 : 2022  /  MANMIN Ver 5.0
 
@@ -11,7 +12,20 @@
 
 /* §17-1 (2026-09-02) — 도구 고유 접두어. 종전 `!== CACHE_NAME` 필터는 같은 origin 의 39종 캐시를 전부 지웠다 */
 const PREFIX     = 'load-';
-const CACHE_NAME = 'load-v5.0.2';
+/* ═ R25 (2026-09-04) — SW 캐시 origin 오염 차단 (S10 · 지시서 §21-1 R25)
+   전역 caches 의 match 는 origin 전체를 검색한다. manminkim-eng.github.io 는 34종이 한 origin 이라
+   다른 도구 캐시의 opaque 응답이 <script crossorigin>(cors) 요청에 돌아가 스크립트가 폐기됐다
+   (30 #root 빈 화면 · 40 html2canvas undefined). 자기 접두어 캐시만 조회하고, cross-origin
+   프리캐시는 cors 로 받으며, opaque↔cors 불일치 시 캐시를 쓰지 않는다. */
+const MM_EXCLUDE = [];   /* 내 접두어로 시작하지만 남의 캐시인 이름 (§17-1 충돌) */
+const mmOwn   = (k) => k.indexOf(PREFIX) === 0 && !MM_EXCLUDE.some((x) => k.indexOf(x) === 0);
+const mmReq   = (u) => (typeof u === 'string' && u.indexOf('http') === 0) ? new Request(u, { mode: 'cors' }) : u;
+const mmMatch = (req, opt) => caches.keys()
+  .then((ks) => ks.filter(mmOwn))
+  .then((ks) => ks.reduce((p, k) => p.then((r) => r || caches.open(k).then((c) => c.match(req, opt))), Promise.resolve(undefined)))
+  .then((r) => (r && r.type === 'opaque' && req && req.mode === 'cors') ? undefined : r);
+
+const CACHE_NAME = 'load-v5.0.3';
 const ORPHAN     = ['manmin-load-v5.0', 'manmin-load-v5.0.1'];
 const STATIC_ASSETS = [
   './',
@@ -33,7 +47,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       console.log('[SW] 캐시 설치 중...');
-      return cache.addAll(STATIC_ASSETS.map(url => new Request(url, { mode: 'cors' })))
+      return Promise.allSettled(STATIC_ASSETS.map((u) => cache.add(mmReq(u)).catch((e) => console.warn('[SW] precache skip:', u, e))))
         .catch(err => {
           console.warn('[SW] 일부 자산 캐시 실패 (무시):', err);
         });
@@ -47,7 +61,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(cacheNames =>
       Promise.all(
         cacheNames
-          .filter(name => name !== CACHE_NAME && (name.indexOf(PREFIX) === 0 || ORPHAN.indexOf(name) !== -1))
+          .filter(name => name !== CACHE_NAME && (mmOwn(name) || ORPHAN.indexOf(name) !== -1))
           .map(name => {
             console.log('[SW] 구버전 캐시 삭제:', name);
             return caches.delete(name);
@@ -74,13 +88,13 @@ self.addEventListener('fetch', event => {
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
-      }).catch(() => caches.match('./index.html'))
+      }).catch(() => mmMatch('./index.html'))
     );
     return;
   }
 
   event.respondWith(
-    caches.match(event.request).then(cached => {
+    mmMatch(event.request).then(cached => {
       if (cached) return cached;
 
       return fetch(event.request).then(response => {
@@ -96,7 +110,7 @@ self.addEventListener('fetch', event => {
       }).catch(() => {
         // 오프라인 폴백 — index.html 반환
         if (event.request.destination === 'document') {
-          return caches.match('./index.html');
+          return mmMatch('./index.html');
         }
       });
     })
