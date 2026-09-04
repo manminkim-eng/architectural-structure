@@ -59,22 +59,6 @@
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "icons/screenshot-desktop.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "설계하중 통합 산정 — 데스크탑"
-    },
-    {
-      "src": "icons/screenshot-mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "설계하중 통합 산정 — 모바일"
-    }
-  ],
   "shortcuts": [
     {
       "name": "고정하중 산정",

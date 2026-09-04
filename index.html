@@ -667,6 +667,9 @@ hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
   /* v5.0-HDR — 420px 탭 축소(10px · 7px 6px → 높이 31px) 폐지. 탭은 전 폭 44px/13px 로 고정(§17-10 · MIN 2026-09-02 "모바일에서 단추가 작다") */
 }
 </style>
+<style id="mm-r1">/* R1 (2026-09-04 · 지시서 §20-1 · S10 소급) — 인쇄 PDF 하단 각인 MANMIN · Ver 비표시. 버전은 A4 푸터 [MANMIN-Ver5.0] 이 담당 */
+#dev-stamp,#dev-stamp-print,.dev-stamp{display:none!important;}
+@media print{#dev-stamp,#dev-stamp-print,.dev-stamp{display:none!important;}}</style>
 </head>
 <body>
 <div id="root"></div>
@@ -2998,5 +3001,7 @@ if ('serviceWorker' in navigator) {
 })();
 </script>
 
+<script>/* R26 (2026-09-04 · 지시서 §20-15 ③ · S10 소급) — 인쇄 중 문서 제목을 비워 PDF 머리글의 페이지 제목을 지운다. 쪽번호·URL 은 브라우저 옵션 */
+(function(){var t=null;window.addEventListener('beforeprint',function(){if(t===null){t=document.title;}document.title=' ';});window.addEventListener('afterprint',function(){if(t!==null){document.title=t;t=null;}});})();</script>
 </body>
 </html>
