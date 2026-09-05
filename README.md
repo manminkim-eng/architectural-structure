@@ -191,3 +191,11 @@ git push -u origin main
 | 본문 여백 | 15px 18px | 16px 18px | **20px 22px 28px** (모바일 16/16/36) |
 | 배경·그림자 | .60 blur6 / 24px72px | .55 blur5 / 24px72px | **.62 blur5 / 30px 80px** |
 | 구현 | — | — | 문서 끝 `<style id="mm-v5-modal-unify">` 덧씌움 (HTML·JSX 무접촉) · sw `load-v5.0.10` |
+
+## v5.0.11 (2026-09-05) — 모달 2종 높이까지 고정 통일
+| 구간 | 폭 | 높이 (v5.0.10 → v5.0.11) |
+|---|---|---|
+| ≥1025px | 840px | 내용에 따라 가변 → **min(720px, 100vh−32px) 고정** |
+| 641~1024px | 88vw | max 88vh → **88vh 고정** |
+| ≤640px | 100% 바텀시트 | max 92vh → **92vh 고정** |
+본문(`.mo-body`/`.help-mo-body`)이 flex:1 로 남는 높이를 채우고 내부 스크롤. sw `load-v5.0.11`
