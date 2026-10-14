@@ -31,7 +31,7 @@ const mmMatch = (req, opt) => caches.keys()
   .then((ks) => ks.reduce((p, k) => p.then((r) => r || caches.open(k).then((c) => c.match(req, opt))), Promise.resolve(undefined)))
   .then((r) => (r && r.type === 'opaque' && req && req.mode === 'cors') ? undefined : r);
 
-const CACHE_NAME = 'load-v5.0.11';
+const CACHE_NAME = 'load-v5.1.0';   /* v5.1.0 (2026-10-14) — KDS 원문 대조 판정 · 계산 전면 정정 */
 const ORPHAN     = ['manmin-load-v5.0', 'manmin-load-v5.0.1'];
 const STATIC_ASSETS = [
   './',
@@ -42,6 +42,9 @@ const STATIC_ASSETS = [
   /* v5.0 — 로컬 폴백 폰트. CDN 차단·오프라인 시 한글 깨짐 방지 */
   './assets/fonts/manmin-fonts.css',
   './assets/fonts/NotoSansKR-var.woff2',
+  /* v5.1.0 — KDS 41 12 00 그림 5.5-1 · 4.2-1 (가이드 모달) */
+  './assets/kds/kds411200_fig5-5-1_V0.jpg',
+  './assets/kds/kds411200_fig4-2-1_Sg.jpg',
   'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@700;900&display=swap',
   'https://unpkg.com/react@18/umd/react.production.min.js',
   'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',
