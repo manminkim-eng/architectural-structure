@@ -85,6 +85,8 @@ self.addEventListener('fetch', event => {
   // POST 요청 및 크롬 익스텐션은 캐시 제외
   if (event.request.method !== 'GET') return;
   if (event.request.url.startsWith('chrome-extension://')) return;
+  /* v5.1.0 — 매뉴얼(/manual/)은 캐시하지 않는다 (온라인 전용 · 갱신 즉시 반영) */
+  if (new URL(event.request.url).pathname.indexOf('/manual/') !== -1) return;
 
   /* 2026-08-31 — HTML 문서는 Network-first 로 바꾼다.
      Cache-first 였을 때 index.html 을 갱신해도 캐시가 우선해

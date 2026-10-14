@@ -237,6 +237,10 @@ input,select{font-size:13px;}
    번호(0~7)는 진행 여부와 무관하게 항상 노출한다. */
 /* v5.0-HDR (2026-09-02 확정) — 활성 탭 단색 배경 + 강조색 바 (01 마스터 구조) */
 .hdr-tab.on{color:#fff;border-bottom-color:#fbbf24;background:#1d4ed8;}
+/* v5.1.0 — 매뉴얼 버튼 : 탭 막대 오른쪽 끝 (작업지시서 §4) */
+.hdr-tab.tb-manual{margin-left:auto;text-decoration:none;}
+#mm-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:99999;opacity:0;transition:opacity .25s;pointer-events:none}
+#mm-toast.on{opacity:1}
 /* 요약 바 */
 .sum-bar{
   background:#0f172a;padding:10px 0;   /* v5.0 — 마스터 실측 38px · v5.0-HDR 하단선 폐지 */
@@ -673,6 +677,11 @@ hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
 </head>
 <body>
 <div id="root"></div>
+<div id="mm-toast" role="status" aria-live="polite"></div>
+<script>/* v5.1.0 — 매뉴얼은 온라인에서만 연다 (프리캐시 제외) */
+window.mmToast=function(m){var t=document.getElementById('mm-toast');if(!t)return;t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove('on');},2200);};
+window.mmOpenManual=function(e){if(navigator.onLine===false){if(e)e.preventDefault();window.mmToast('매뉴얼은 인터넷 연결 시 열립니다');return false;}return true;};
+</script>
 
 <script id="load-engine">
 /* ══ 설계하중 판정 엔진 v5.1.0 (2026-10-14) — KDS 41 12 00 : 2022 · KDS 41 17 00 : 2022 · KDS 17 10 00 · KDS 41 10 05 : 2024 원문 대조
@@ -2043,6 +2052,8 @@ function App(){
   const [wind,setWind]=useState({Ce:'1.0',exposure:'C',regular:true});
   const [seis,setSeis]=useState({soil:'S4',sysIdx:'0',customW:false,W:'',equip:''});
   const R=useMemo(()=>ENG.calcAll({info,dead,live,snow,wind,seis}),[info,dead,live,snow,wind,seis]);
+  /* v5.1.0 — 매뉴얼 캡처 · 점검용 읽기 창구 (화면 동작에는 관여하지 않음) */
+  React.useEffect(()=>{window.__mmLoad={set:{info:setInfo,dead:setDead,live:setLive,snow:setSnow,wind:setWind,seis:setSeis},goTab,R,st:{info,dead,live,snow,wind,seis}};});
 
   const TABS=[
     {icon:'🏢',label:'프로젝트',key:0},
@@ -2105,6 +2116,7 @@ function App(){
               {t.icon} {t.label}
             </button>
           ))}
+          <a className="hdr-tab tb-manual" href="https://manminkim-eng.github.io/architectural-structure/manual/" target="_blank" rel="noopener" onClick={e=>window.mmOpenManual(e)}>📘 매뉴얼</a>
         </div>
       </header>
 
