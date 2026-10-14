@@ -842,12 +842,12 @@ function findLL(cat,sub){
   return LL_TABLE[7];
 }
 var KLL={col:4,beam:2,slab:1};   /* 3.5.2 영향면적 = 부하면적 × (기둥·기초 4, 보·벽 2, 슬래브 1) */
-function calcLive(live){
+function calcLive(live,info){
   var row=findLL(live.cat,live.sub);
   var Lo=live.custom? num(live.customVal) : row.Lo;
   var flags={asm:!live.custom&&!!row.asm, car:!live.custom&&!!row.car, roof:!live.custom&&!!row.roof, stor:!live.custom&&!!row.stor, park:!live.custom&&!!row.park};
   /* 3.2.3 칸막이벽 하중 — 기본활하중 4 kN/m² 이상이면 제외 가능 */
-  var partOK = Lo<4.0;
+  var partOK = Lo<4.0 && !flags.roof;                 /* 지붕활하중(Lr)에는 칸막이벽 하중 없음 */
   var part = (live.partition&&partOK)?1.0:0;
   var AT=num(live.AT), k=KLL[live.member]||1, A=AT*k;
   var C=1, note='', canReduce=false;
@@ -865,9 +865,20 @@ function calcLive(live){
     }
   }
   var L=Lo*C+part;
+  /* 3.6.1 지붕활하중의 저감 — Lr = L₀·R1·R2 (0.6 ≤ Lr ≤ 1.0, 식 3.6-1). 지붕활하중 행은 L이 아니라 Lr로 하중조합의 (Lr 또는 S) 자리에 들어간다 */
+  var Lr=0, R1=1, R2=1, Fm=0, roofRed=false;
+  if(flags.roof){
+    Fm=Math.tan(num(info&&info.roofAngle)*Math.PI/180);
+    if(live.reduce){
+      R1 = AT<=20 ? 1.0 : (AT>=60 ? 0.6 : 1.2-0.01*AT);
+      R2 = Fm<=1/3 ? 1.0 : (Fm>=1 ? 0.6 : 1.2-0.6*Fm);
+      Lr=Math.min(Math.max(Lo*R1*R2,0.6),1.0); roofRed=true; note='';
+    } else Lr=Lo;
+    L=0; C=1;
+  }
   /* 1.7.1(2) — 주차장 · 공공집회 제외, Lo ≤ 5.0 → 식(1.7-3)(1.7-4)(1.7-5)의 L 계수 0.5 가능 */
   var halfOK = Lo<=5.0 && !flags.park && !flags.asm;
-  return {row:row,Lo:Lo,part:part,partOK:partOK,A:A,k:k,C:C,canReduce:canReduce,note:note,L:L,flags:flags,halfOK:halfOK};
+  return {row:row,Lo:Lo,part:part,partOK:partOK,A:A,k:k,C:C,canReduce:canReduce,note:note,L:L,flags:flags,halfOK:halfOK,Lr:Lr,R1:R1,R2:R2,F:Fm,AT:AT,roofRed:roofRed};
 }
 
 /* ── 적설하중 — 4.3 · 4.4 ── */
@@ -887,7 +898,9 @@ function calcSnow(info,snow){
   var minS=null;
   if(lowSlope){ if(Sg<=1.0){ minS=Sg*Is; if(minS<1.0)minS=1.0; } else { minS=1.0*Is; } }
   var S= lowSlope? Math.max(Ss,minS) : Ss;
-  return {Sg:Sg,Ce:Ce,Ct:Ct,Cb:Cb,Is:Is,theta:th,Sf:Sf,Cs:Cs,Ss:Ss,lowSlope:lowSlope,minS:minS,S:S};
+  /* 4.5.1 경사지붕 불균형설하중 — 15° 이하 · 70° 초과는 고려하지 않음. 그 외 바람 불어오는 쪽 0, 반대쪽 1.5Ss */
+  var unbal = th>15 && th<=70;
+  return {Sg:Sg,Ce:Ce,Ct:Ct,Cb:Cb,Is:Is,theta:th,Sf:Sf,Cs:Cs,Ss:Ss,lowSlope:lowSlope,minS:minS,S:S,unbal:unbal,Sub:unbal?1.5*Ss:0};
 }
 
 /* ── 풍하중 — 5.15 간편법 (주골조 수평) + 5.5 속도압(참고) ── */
@@ -920,6 +933,10 @@ function calcSeis(info,seis,deadR,liveR,snowR){
   var Z=zone?ZONE_Z[zone]:NaN, S=Z*RISK_2400;
   var soil=SOIL_FA[seis.soil]?seis.soil:'S4';
   var Fa=interpS(SOIL_FA[soil],S), Fv=interpS(SOIL_FV[soil],S);
+  /* 4.2.2(2) 기반암 깊이 20 m 초과 · 평균 전단파속도 360 m/s 이상(S4) → Fv × 80% · 4.2.2(3) S5 · 기반암 깊이 불분명 → Fa · Fv × 110% */
+  var adjFv = soil==='S4' && !!seis.fvDeep, adjS5 = soil==='S5' && !!seis.s5Unk;
+  if(adjFv) Fv*=0.8;
+  if(adjS5){ Fa*=1.1; Fv*=1.1; }
   var SDS=S*2.5*Fa*2/3, SD1=S*Fv*2/3;
   var sys=STRUCT_SYS[num(seis.sysIdx)]||STRUCT_SYS[0];
   var hn=num(info.height), Ie=imp.Ie, R=sys.R;
@@ -940,28 +957,29 @@ function calcSeis(info,seis,deadR,liveR,snowR){
   var Wauto=(deadR.D+wPart+wStor)*area*N + wSnow + wEq;
   var W= seis.customW? num(seis.W) : Wauto;
   var V=Cs*W;
-  return {zone:zone,Z:Z,S:S,soil:soil,Fa:Fa,Fv:Fv,SDS:SDS,SD1:SD1,sys:sys,hn:hn,Ie:Ie,R:R,Ta:Ta,Cs0:Cs0,Cmax:Cmax,Cmin:Cmin,Cs:Cs,
+  return {zone:zone,Z:Z,S:S,soil:soil,Fa:Fa,Fv:Fv,adjFv:adjFv,adjS5:adjS5,SDS:SDS,SD1:SD1,sys:sys,hn:hn,Ie:Ie,R:R,Ta:Ta,Cs0:Cs0,Cmax:Cmax,Cmin:Cmin,Cs:Cs,
     T0:0.2*SD1/SDS,Ts:SD1/SDS,grade:imp.grade,sdc:sdc,sysWarn:sysWarn,wPart:wPart,wStor:wStor,wSnow:wSnow,wEq:wEq,Wauto:Wauto,W:W,V:V};
 }
 
 /* ── 하중조합 — KDS 41 12 00 1.7.1 식(1.7-1)~(1.7-7). 연직(중력방향) 단위면적 값과 동반 수평하중을 분리해 표시 ── */
 function calcCombo(D,L,S,liveR,useHalf){
-  var fL = (useHalf&&liveR.halfOK)?0.5:1.0;
+  var fL = (useHalf&&liveR.halfOK)?0.5:1.0, fs=(fL===1?'1.0':'0.5');
+  var Lr=liveR.Lr||0, RS=Math.max(Lr,S), rsKey = Lr>S ? 'Lr' : 'S';   /* (Lr 또는 S) — 연직 하중효과가 큰 쪽 */
   var C=[
     {id:'1.7-1',f:'1.4D',v:1.4*D,lat:''},
-    {id:'1.7-2',f:'1.2D + 1.6L + 0.5S',v:1.2*D+1.6*L+0.5*S,lat:''},
-    {id:'1.7-3',f:'1.2D + 1.6S + '+(fL===1?'1.0':'0.5')+'L',v:1.2*D+1.6*S+fL*L,lat:'또는 1.2D + 1.6S + 0.5W'},
-    {id:'1.7-4',f:'1.2D + '+(fL===1?'1.0':'0.5')+'L + 0.5S',v:1.2*D+fL*L+0.5*S,lat:'+ 1.0W'},
-    {id:'1.7-5',f:'1.2D + '+(fL===1?'1.0':'0.5')+'L + 0.2S',v:1.2*D+fL*L+0.2*S,lat:'+ 1.0E'},
+    {id:'1.7-2',f:'1.2D + 1.6L + 0.5(Lr 또는 S)',v:1.2*D+1.6*L+0.5*RS,lat:''},
+    {id:'1.7-3',f:'1.2D + 1.6(Lr 또는 S) + '+fs+'L',v:1.2*D+1.6*RS+fL*L,lat:'또는 1.2D + 1.6(Lr 또는 S) + 0.5W'},
+    {id:'1.7-4',f:'1.2D + '+fs+'L + 0.5(Lr 또는 S)',v:1.2*D+fL*L+0.5*RS,lat:'+ 1.0W'},
+    {id:'1.7-5',f:'1.2D + '+fs+'L + 0.2S',v:1.2*D+fL*L+0.2*S,lat:'+ 1.0E'},
     {id:'1.7-6',f:'0.9D',v:0.9*D,lat:'+ 1.0W',min:1},
     {id:'1.7-7',f:'0.9D',v:0.9*D,lat:'+ 1.0E',min:1}
   ];
   var gov=null; C.forEach(function(c){ if(!c.min && (gov===null||c.v>gov.v)) gov=c; });
-  return {list:C,gov:gov,fL:fL};
+  return {list:C,gov:gov,fL:fL,Lr:Lr,RS:RS,rsKey:rsKey};
 }
 
 function calcAll(st){
-  var d=calcDead(st.dead), l=calcLive(st.live), s=calcSnow(st.info,st.snow), w=calcWind(st.info,st.wind);
+  var d=calcDead(st.dead), l=calcLive(st.live,st.info), s=calcSnow(st.info,st.snow), w=calcWind(st.info,st.wind);
   var e=calcSeis(st.info,st.seis,d,l,s);
   var c=calcCombo(d.D,l.L,s.S,l,!!st.live.half);
   return {dead:d,live:l,snow:s,wind:w,seis:e,combo:c};
@@ -974,7 +992,6 @@ var API={SIDO:SIDO,GANGWON_S:GANGWON_S,GANGWON_N:GANGWON_N,ZONE_Z:ZONE_Z,RISK_24
 root.LOADENG=API;
 if(typeof module!=='undefined'&&module.exports)module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);
-
 </script>
 <script type="text/babel">
 const {useState,useEffect,useMemo,useCallback,useRef}=React;
@@ -1066,7 +1083,14 @@ function GuideModal({onClose}){
         • 5 kN/m² 초과 활하중은 저감 불가, 단 2개 층 이상 지지 부재는 C = 0.8까지<br/>
         • 5 kN/m² 이하 <b>공중집회 용도</b>는 저감 불가<br/>
         • 승용차 전용 주차장은 저감 불가, 단 2개 층 이상 지지 부재는 C = 0.8까지<br/>
-        • 지붕활하중은 3.5 대상이 아님(3.6 별도) — 본 도구는 3.6을 계산하지 않습니다
+        • 지붕활하중은 3.5 대상이 아님 — 3.6으로 별도 저감
+      </div>
+      <div className="mo-sec">지붕활하중의 저감 — 3.6</div>
+      <div className="mo-fml">
+        <span className="eq">Lr = L₀ · R1 · R2</span> (0.6 ≤ Lr ≤ 1.0, 식 3.6-1)<br/>
+        R1 = 1.0 (A_t ≤ 20 m²) · 1.2 − 0.01A_t (20 ~ 60 m²) · 0.6 (A_t ≥ 60 m²) — A_t : 부재의 부하면적<br/>
+        R2 = 1.0 (F ≤ 1/3) · 1.2 − 0.6F (1/3 ~ 1) · 0.6 (F ≥ 1) — F : 경사지붕의 물매(본 도구는 tan θ)<br/>
+        정원 · 집회 용도 지붕은 3.5 적용(3.6.2) — Lr은 하중조합의 (Lr 또는 S) 자리에 들어갑니다
       </div>
     </>,
     /* 3. 적설하중 */
@@ -1084,6 +1108,8 @@ function GuideModal({onClose}){
       </div>
       <div className="mo-sec">최소설하중 — 4.3.5 (15° 이내 지붕)</div>
       <div className="mo-txt">Sg ≤ 1.0 kN/m² : Sg × Is 이상, 그 값이 점유·사용하지 않는 지붕의 활하중(1.0 kN/m²)보다 작으면 <b>1.0 kN/m²</b> · Sg &gt; 1.0 : 1.0 × Is 이상</div>
+      <div className="mo-sec">경사지붕 불균형설하중 — 4.5.1</div>
+      <div className="mo-txt">경사도 15° 이하 또는 70° 초과는 고려하지 않음 · 그 외에는 바람 불어오는 쪽 지붕면 0, 반대쪽 지붕면 <b>1.5Ss</b> — 하중조합의 S는 균형하중, 불균형하중은 부재 설계 때 별도 재하</div>
       <div className="mo-ref"><img src="./assets/kds/kds411200_fig4-2-1_Sg.jpg" alt="그림 4.2-1 기본지상설하중" style={{width:'100%',border:'1px solid #e2e8f0',borderRadius:6}}/><br/>그림 4.2-1 기본지상설하중 Sg (kN/m²) — KDS 41 12 00 : 2022</div>
     </>,
     /* 4. 풍하중 */
@@ -1107,7 +1133,7 @@ function GuideModal({onClose}){
       <div className="mo-fml">
         <span className="eq">S = Z × I</span> — 지진구역계수 Z(구역 Ⅰ 0.11 · Ⅱ 0.07) × 위험도계수 I = 2.0 (2400년) — 3.2<br/>
         <span className="eq">SDS = S × 2.5 × Fa × 2/3</span> · <span className="eq">SD1 = S × Fv × 2/3</span> (식 4.2-4 · 4.2-5)<br/>
-        Fa · Fv : 표 4.2-1 · 4.2-2 (지반 S1~S5, S값 직선보간)<br/>
+        Fa · Fv : 표 4.2-1 · 4.2-2 (지반 S1~S5, S값 직선보간) — 4.2.2(2) 기반암 깊이 20 m 초과 · 평균 전단파속도 360 m/s 이상이면 Fv × 80% · 4.2.2(3) S5이고 기반암 깊이 불분명하면 Fa · Fv × 110%<br/>
         <span className="eq">Cs = SDS / (R/IE)</span> (식 7.2-2) ≤ SD1/[(R/IE)T] (T ≤ TL) · SD1·TL/[(R/IE)T²] (T &gt; TL), TL = 5초<br/>
         Cs ≥ 0.044 · SDS · IE ≥ 0.01 (식 7.2-5) &nbsp;|&nbsp; <span className="eq">V = Cs · W</span> (식 7.2-1)
       </div>
@@ -1136,7 +1162,8 @@ function GuideModal({onClose}){
       <div className="mo-txt">
         • 연직(중력방향) 단위면적 하중(kN/m²)만 서로 비교하고, W(풍압)·E(밑면전단력)는 <b>동반 수평하중</b>으로 따로 적습니다(단위가 달라 더하지 않음)<br/>
         • 1.7.1(2) — 주차장·공공집회 제외, 기본등분포활하중 5.0 kN/m² 이하이면 식(1.7-3)(1.7-4)(1.7-5)의 L 계수를 0.5로 할 수 있음(선택)<br/>
-        • F · T · H · Lr · R은 입력하지 않습니다(필요 시 별도 검토)
+        • (Lr 또는 S) — 지붕활하중 Lr(3.6)과 설하중 S 중 큰 값을 씁니다(Lr은 활하중 탭에서 지붕활하중을 고를 때만)<br/>
+        • F · T · H · R은 입력하지 않습니다(필요 시 별도 검토)
       </div>
     </>,
     /* 7. 기준법규 */
@@ -1257,6 +1284,10 @@ function StepProject({info,setInfo,R}){
             </label>
           </div>
         </div>
+        <div style={{marginBottom:10}}>
+          <div className="fl">V₀ · Sg 판독 근거 <span className="fu">A4 Ⅰ절 표기</span></div>
+          <input className="fi" type="text" maxLength={80} placeholder="예: 그림 5.5-1 · 4.2-1 서울 — 28 m/s 등풍속선 · 0.5 kN/m² 구역 (판독 2026-10-14)" value={info.readNote||''} onChange={e=>set('readNote',e.target.value)}/>
+        </div>
         <div className="wbox">
           ⚠ <b>V₀ · Sg는 지도 값</b>입니다. 가이드(📋) ④ 풍하중 · ③ 적설하중 탭의 KDS 그림에서 건설지점 값을 읽어 넣으십시오. 기본값(서울 V₀ 28 m/s · Sg 0.5 kN/m²)은 예제 값입니다.
         </div>
@@ -1365,7 +1396,7 @@ function StepDead({dead,setDead,R}){
 function StepLive({live,setLive,R}){
   const cats=[...new Set(LL_TABLE.map(x=>x.cat))];
   const subs=LL_TABLE.filter(x=>x.cat===live.cat);
-  const L=R.live;
+  const L=R.live, rf=L.flags.roof;
   const set=(k,v)=>setLive({...live,[k]:v});
   return(
     <div className="card">
@@ -1395,14 +1426,32 @@ function StepLive({live,setLive,R}){
             <input type="checkbox" checked={!!live.partition&&L.partOK} disabled={!L.partOK} onChange={e=>set('partition',e.target.checked)} style={{width:14,height:14}}/>
             칸막이벽 하중 +1.0 kN/m² (3.2.3)
           </label>
-          {!L.partOK&&<span className="vbadge warn">기본활하중 4 kN/m² 이상 — 제외 가능</span>}
+          {!L.partOK&&<span className="vbadge warn">{rf?'지붕활하중 — 칸막이벽 하중 없음':'기본활하중 4 kN/m² 이상 — 제외 가능'}</span>}
         </div>
         <div style={{background:'#f0f4f8',border:'1px solid #d1dbe8',borderRadius:8,padding:'11px 13px'}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
             <input type="checkbox" checked={!!live.reduce} onChange={e=>set('reduce',e.target.checked)} style={{width:14,height:14}}/>
-            <div style={{fontWeight:800,fontSize:12,color:'#1e3a5f'}}>📉 활하중의 저감 (3.5) 적용</div>
+            <div style={{fontWeight:800,fontSize:12,color:'#1e3a5f'}}>{rf?'📉 지붕활하중의 저감 (3.6.1) 적용':'📉 활하중의 저감 (3.5) 적용'}</div>
           </div>
-          {live.reduce&&(
+          {live.reduce&&rf&&(
+            <div className="g3" style={{gap:10}}>
+              <div>
+                <div className="fl">부재의 부하면적 A_t <span className="fu">m²</span></div>
+                <input className="fi" type="number" min="0" step="1" value={live.AT||''} onChange={e=>set('AT',e.target.value)}/>
+              </div>
+              <div style={{display:'flex',alignItems:'flex-end',paddingBottom:6,fontSize:11,color:'#475569'}}>
+                지붕 물매 F = tan θ = {f3(L.F)} (프로젝트 탭 지붕 경사각)
+              </div>
+            </div>
+          )}
+          {live.reduce&&rf&&(
+            <div style={{marginTop:8,fontSize:11,color:'#475569'}}>
+              R1 = {L.AT<=20?'1.0 (A_t ≤ 20 m²)':L.AT>=60?'0.6 (A_t ≥ 60 m²)':`1.2 − 0.01 × ${f2(L.AT)} = ${f3(L.R1)}`} &nbsp;|&nbsp;
+              R2 = {L.F<=1/3?'1.0 (F ≤ 1/3)':L.F>=1?'0.6 (F ≥ 1)':`1.2 − 0.6 × ${f3(L.F)} = ${f3(L.R2)}`} &nbsp;|&nbsp;
+              Lr = {f2(L.Lo)} × {f3(L.R1)} × {f3(L.R2)} → <b>{f3(L.Lr)}</b> kN/m² (0.6 ≤ Lr ≤ 1.0)
+            </div>
+          )}
+          {live.reduce&&!rf&&(
             <div className="g3" style={{gap:10}}>
               <div>
                 <div className="fl">부재 (3.5.2 영향면적)</div>
@@ -1424,7 +1473,7 @@ function StepLive({live,setLive,R}){
               </div>
             </div>
           )}
-          {live.reduce&&(
+          {live.reduce&&!rf&&(
             <div style={{marginTop:8,fontSize:11,color:'#475569'}}>
               영향면적 A = {f2(n(live.AT))} × {L.k} = <b>{f2(L.A)}</b> m²
               {L.canReduce&&<> &nbsp;|&nbsp; C = 0.3 + 4.2/√{f2(L.A)} = {f3(0.3+4.2/Math.sqrt(L.A))} → 적용 <b>{f3(L.C)}</b> (하한 {live.multi?'0.4':'0.5'})</>}
@@ -1434,13 +1483,19 @@ function StepLive({live,setLive,R}){
         </div>
         <div className="rbox">
           <div className="rrow"><span className="rlbl">기본등분포활하중 L₀</span><span className="rval">{f2(L.Lo)} kN/m²</span></div>
+          {rf?<>
+            {live.reduce&&<div className="rrow"><span className="rlbl">저감계수 R1 · R2 (식 3.6-1)</span><span className="rval">{f3(L.R1)} · {f3(L.R2)}</span></div>}
+            <div className="rrow"><span className="rlbl">지붕활하중 <b>Lr</b> {live.reduce?'= L₀·R1·R2 (0.6 ~ 1.0)':'= L₀ (저감 미적용)'}</span><span className="rval lg">{f3(L.Lr)} kN/m²</span></div>
+            <div className="rrow"><span className="rlbl">바닥활하중 L (지붕 산정이므로)</span><span className="rval">0.00 kN/m²</span></div>
+          </>:<>
           {live.reduce&&<div className="rrow"><span className="rlbl">활하중저감계수 C</span><span className="rval">{f3(L.C)}</span></div>}
           {L.part>0&&<div className="rrow"><span className="rlbl">칸막이벽 하중 (3.2.3)</span><span className="rval">+ {f2(L.part)} kN/m²</span></div>}
           <div className="rrow"><span className="rlbl">적용 활하중 <b>L</b> = L₀·C + 칸막이</span><span className="rval lg">{f2(L.L)} kN/m²</span></div>
+          </>}
         </div>
         <div className="ibox">
           <b className="law">3.5.3</b> — C ≥ 0.5(1개 층) · 0.4(2개 층 이상) · 5 kN/m² 초과 · 승용차 전용 주차장은 2개 층 이상 지지 부재만 0.8까지 · 5 kN/m² 이하 공중집회 용도는 저감 불가.<br/>
-          칸막이벽 하중은 저감하지 않고 더합니다(MANMIN 적용). 지붕활하중 저감(3.6)은 계산하지 않습니다.
+          칸막이벽 하중은 저감하지 않고 더합니다(MANMIN 적용). <b className="law">3.6</b> — 「지붕 / 점유·사용하지 않는 지붕(지붕활하중)」을 고르면 식(3.6-1)로 저감한 <b>Lr</b>을 하중조합의 (Lr 또는 S) 자리에 넣고 바닥활하중 L은 0으로 둡니다. 정원 · 집회 용도 지붕은 3.5를 적용합니다(3.6.2).
         </div>
       </div>
     </div>
@@ -1501,10 +1556,12 @@ function StepSnow({snow,setSnow,info,R}){
           <div className="rrow"><span className="rlbl">평지붕설하중 Sf</span><span className="rval">{f3(s.Sf)} kN/m²</span></div>
           <div className="rrow"><span className="rlbl">경사지붕설하중 Ss = Cs·Sf</span><span className="rval">{f3(s.Ss)} kN/m²</span></div>
           {s.lowSlope&&<div className="rrow"><span className="rlbl">최소설하중 (4.3.5)</span><span className="rval">{f3(s.minS)} kN/m² {s.Ss<s.minS?'→ 최소값 적용':''}</span></div>}
-          <div className="rrow"><span className="rlbl">적용 설하중 <b>S</b></span><span className="rval lg">{f3(s.S)} kN/m²</span></div>
+          <div className="rrow"><span className="rlbl">적용 설하중 <b>S</b> (균형하중)</span><span className="rval lg">{f3(s.S)} kN/m²</span></div>
+          {s.unbal?<div className="rrow"><span className="rlbl">불균형설하중 (4.5.1) — 바람 반대쪽 면 1.5Ss · 불어오는 쪽 0</span><span className="rval">{f3(s.Sub)} kN/m²</span></div>
+            :<div className="rrow"><span className="rlbl">불균형설하중 (4.5.1)</span><span className="rval">θ {s.theta<=15?'≤ 15°':'> 70°'} — 고려 안 함</span></div>}
         </div>
         <div className="ibox">
-          <b className="law">4.4 · 4.5 · 4.6</b> — 불균형설하중(경사 15° 초과 ~ 70° 이하) · 국부설하중(낮은 지붕 · 수직돌출부 · 내민처마)은 이 도구에서 계산하지 않습니다. 해당하면 별도 검토하십시오.
+          <b className="law">4.5.1</b> — 경사지붕(박공 등)은 경사 15° 초과 ~ 70° 이하일 때 균형하중과 별도로 불균형하중(바람 불어오는 쪽 0, 반대쪽 1.5Ss)을 검토합니다. 하중조합의 S는 균형하중이며, 불균형하중은 부재 설계 때 별도 재하하십시오. 곡면 · 톱날형 지붕(4.5.2 · 4.5.3)과 <b className="law">4.6</b> 국부설하중(낮은 지붕 몰림적설 · 수직돌출부 · 흘러내림 · 내민처마)은 이 도구에서 계산하지 않습니다.
         </div>
       </div>
     </div>
@@ -1602,6 +1659,14 @@ function StepSeismic({seis,setSeis,info,R}){
               {Object.keys(SOIL_DESC).map(k=><option key={k} value={k}>{k} — {SOIL_DESC[k]}</option>)}
             </select>
             <div style={{fontSize:10,color:'#64748b',marginTop:3}}>자료가 부족하고 S5 가능성이 없으면 S4 적용 가능 (4.1.1③)</div>
+            <label style={{display:'flex',alignItems:'flex-start',gap:6,fontSize:11,fontWeight:700,marginTop:6,cursor:seis.soil==='S4'?'pointer':'not-allowed',opacity:seis.soil==='S4'?1:.45}}>
+              <input type="checkbox" checked={!!seis.fvDeep&&seis.soil==='S4'} disabled={seis.soil!=='S4'} onChange={ev=>set('fvDeep',ev.target.checked)} style={{width:13,height:13,marginTop:1}}/>
+              4.2.2(2) 기반암 깊이 20 m 초과 · 평균 전단파속도 360 m/s 이상 → Fv × 80% (S4)
+            </label>
+            <label style={{display:'flex',alignItems:'flex-start',gap:6,fontSize:11,fontWeight:700,marginTop:4,cursor:seis.soil==='S5'?'pointer':'not-allowed',opacity:seis.soil==='S5'?1:.45}}>
+              <input type="checkbox" checked={!!seis.s5Unk&&seis.soil==='S5'} disabled={seis.soil!=='S5'} onChange={ev=>set('s5Unk',ev.target.checked)} style={{width:13,height:13,marginTop:1}}/>
+              4.2.2(3) S5 · 기반암 깊이 불분명 → Fa · Fv × 110%
+            </label>
           </div>
           <div>
             <div className="fl">지진력저항시스템 (표 6.2-1)</div>
@@ -1627,7 +1692,7 @@ function StepSeismic({seis,setSeis,info,R}){
           </div>
         )}
         <div className="fbox" style={{marginTop:10}}>
-          Fa = {f3(e.Fa)} · Fv = {f3(e.Fv)} (표 4.2-1·4.2-2, {e.soil}, S = {f3(e.S)} 보간)<br/>
+          Fa = {f3(e.Fa)} · Fv = {f3(e.Fv)} (표 4.2-1·4.2-2, {e.soil}, S = {f3(e.S)} 보간{e.adjFv?' · 4.2.2(2) Fv × 0.8':''}{e.adjS5?' · 4.2.2(3) Fa · Fv × 1.1':''})<br/>
           SDS = S × 2.5 × Fa × 2/3 = {f3(e.S)} × 2.5 × {f3(e.Fa)} × 2/3 = <b>{f4(e.SDS)}g</b> &nbsp;|&nbsp; SD1 = S × Fv × 2/3 = <b>{f4(e.SD1)}g</b><br/>
           Cs = SDS/(R/IE) = {f4(e.SDS)}/({e.R}/{e.Ie}) = {f4(e.Cs0)} · 상한 {f4(e.Cmax)} (식 {e.Ta<=5?'7.2-3':'7.2-4'}) · 하한 {f4(e.Cmin)} (식 7.2-5) → <b>Cs = {f4(e.Cs)}</b><br/>
           {!seis.customW&&<>W = (D {f2(R.dead.D)}{e.wPart>0?` + 칸막이 ${f2(e.wPart)}`:''}{e.wStor>0?` + 창고 0.25L ${f2(e.wStor)}`:''}) × {n(info.area)} m² × {n(info.floors)}층{e.wSnow>0?` + 0.2Sf·A ${f2(e.wSnow)}`:''}{e.wEq>0?` + 영구설비 ${f2(e.wEq)}`:''} = {e.Wauto.toFixed(0)} kN</>}
@@ -1642,7 +1707,7 @@ function StepSeismic({seis,setSeis,info,R}){
         </div>
         {e.sysWarn&&<div className="wbox">⚠ {e.sysWarn}</div>}
         <div className="ibox">
-          <b className="law">7.1</b> — 내진설계범주 C · D에서 높이 · 층수 · 비정형성에 따라 동적해석법(7.3)이 요구될 수 있습니다(7.1.2 · 7.1.3, 표 7.1-1). 4.2.2(2)(3)의 Fv 80% · 110% 보정과 7.2.4(2)(3)의 주기 보정은 반영하지 않았습니다.
+          <b className="law">7.1</b> — 내진설계범주 C · D에서 높이 · 층수 · 비정형성에 따라 동적해석법(7.3)이 요구될 수 있습니다(7.1.2 · 7.1.3, 표 7.1-1). 7.2.4(2)(3)의 주기 보정(비보강채움벽 2/3 · 식 7.2-7)은 반영하지 않았습니다.
         </div>
       </div>
     </div>
@@ -1661,6 +1726,7 @@ function StepCombo({live,setLive,R}){
         <div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:14}}>
           {[['D',f3(D),'kN/m²','#eff6ff','#bfdbfe','#1d4ed8'],
             ['L',f3(L),'kN/m²','#f0fdf4','#bbf7d0','#15803d'],
+            ['Lr',f3(C.Lr),'kN/m² (지붕)','#f0fdf4','#bbf7d0','#15803d'],
             ['S',f3(S),'kN/m²','#eff6ff','#bfdbfe','#0284c7'],
             ['W',f4(R.wind.W),'kN/m² (수평)','#f0fdfa','#99f6e4','#0f766e'],
             ['E : V',f2(R.seis.V),'kN (수평)','#fef2f2','#fecaca','#dc2626'],
@@ -1707,7 +1773,8 @@ function StepCombo({live,setLive,R}){
             <div className="fpi gov"><div className="fpil">연직 지배 조합</div><div style={{fontSize:18,fontWeight:900,color:'#fca5a5'}}>({C.gov.id})</div><div className="fpiu">{C.gov.f}</div></div>
             <div className="fpi gov"><div className="fpil">연직 최대 하중</div><div className="fpiv">{f3(C.gov.v)}</div><div className="fpiu">kN/m²</div></div>
             <div className="fpi"><div className="fpil">고정하중 D</div><div className="fpiv">{f2(D)}</div><div className="fpiu">kN/m²</div></div>
-            <div className="fpi"><div className="fpil">활하중 L</div><div className="fpiv">{f2(L)}</div><div className="fpiu">kN/m²</div></div>
+            {R.live.flags.roof?<div className="fpi"><div className="fpil">지붕활하중 Lr</div><div className="fpiv">{f3(C.Lr)}</div><div className="fpiu">kN/m²</div></div>
+              :<div className="fpi"><div className="fpil">활하중 L</div><div className="fpiv">{f2(L)}</div><div className="fpiu">kN/m²</div></div>}
             <div className="fpi"><div className="fpil">적설하중 S</div><div className="fpiv">{f3(S)}</div><div className="fpiu">kN/m²</div></div>
             <div className="fpi"><div className="fpil">풍압 W</div><div className="fpiv">{f4(R.wind.W)}</div><div className="fpiu">kN/m²</div></div>
             <div className="fpi"><div className="fpil">밑면전단력 V</div><div className="fpiv">{R.seis.V>0?R.seis.V.toFixed(0):'—'}</div><div className="fpiu">kN</div></div>
@@ -1716,7 +1783,7 @@ function StepCombo({live,setLive,R}){
         </div>
         <div className="ibox" style={{marginTop:12}}>
           <b className="law">정리 방식</b> — 바닥·지붕의 연직 단위면적 하중(D · L · S)만 비교하고, W(풍압, kN/m²)와 E(밑면전단력, kN)는 같은 조합의 수평하중으로 따로 적습니다. 식(1.7-6)(1.7-7)의 0.9D는 전도 · 인발 검토용 최소 중력입니다.<br/>
-          <b className="law">1.7.1(1)</b> — F(유체압) · T(자체변형) · Lr(지붕활하중) · R(강우)는 입력하지 않았습니다. 지붕활하중을 따로 쓰는 경우 Lr과 S 중 큰 값을 적용하십시오.
+          <b className="law">1.7.1(1)</b> — (Lr 또는 S)는 연직 하중효과가 큰 쪽을 씁니다 — 현재 <b>{C.rsKey} = {f3(C.RS)} kN/m²</b>(Lr {f3(C.Lr)} · S {f3(S)}). Lr은 활하중 탭에서 지붕활하중을 고를 때만 생깁니다(3.6). F(유체압) · T(자체변형) · R(강우)는 입력하지 않았습니다.
         </div>
       </div>
     </div>
@@ -1830,7 +1897,7 @@ function PrintReport({info,dead,live,snow,wind,seis,R,forPrint=false}){
                 [['중요도',`중요도(${info.importance||'2'}) · 내진등급 ${imp.grade} (KDS 41 10 05 : 2024)`],['계수',`Is ${imp.Is} · Iw ${f2(w.Iw)} · IE ${imp.Ie}`]],
                 [['건물 높이',`${n(info.height)} m (지상 ${n(info.floors)}층)`],['평면 규모',`B ${n(info.width)} m × D ${n(info.depth)} m (기준층 ${n(info.area)} m²)`]],
                 [['기본풍속 V₀',`${n(info.V0)} m/s (그림 5.5-1, 재현기간 500년)`],['기본지상설하중 Sg',`${n(info.Sg)} kN/m² (그림 4.2-1)`]],
-                [['지붕 경사각',`${n(info.roofAngle)}°`],['산정 일자',today]],
+                [['지붕 경사각',`${n(info.roofAngle)}°`],['V₀ · Sg 판독 근거',info.readNote||'(미입력)']],
               ].map((row,ri)=>(
                 <tr key={ri}>
                   {row.map(([k,v],ci)=>[
@@ -1871,22 +1938,27 @@ function PrintReport({info,dead,live,snow,wind,seis,R,forPrint=false}){
         </div>
         {/* Ⅲ */}
         <div className="ps" style={{marginBottom:14}}>
-          <div style={SH}>Ⅲ. 활하중 (L) 산정 — KDS 41 12 00 3.2 · 3.5</div>
+          <div style={SH}>Ⅲ. 활하중 (L · Lr) 산정 — KDS 41 12 00 3.2 · 3.5 · 3.6</div>
           <div style={proc}>
             <b>■ 용도 : {live.custom?'직접 입력':`${Lr.row.cat} / ${Lr.row.sub}`}</b><br/>
             {eq('기본등분포활하중 L₀')} = {f2(Lr.Lo)} kN/m² &nbsp;{note(live.custom?'(3.1(4) — 산정 근거 별도 명시)':'(표 3.2-1)')}<br/>
             {Lr.part>0?<>칸막이벽 하중 = + {f2(Lr.part)} kN/m² &nbsp;{note('(3.2.3)')}<br/></>:null}
+            {Lr.flags.roof?(<>
+              {live.reduce?<>{eq('Lr = L₀ × R1 × R2')} {note('(식 3.6-1, 0.6 ≤ Lr ≤ 1.0)')} : 부하면적 A_t = {f2(Lr.AT)} m² → R1 = {f3(Lr.R1)} · 물매 F = tan {n(info.roofAngle)}° = {f3(Lr.F)} → R2 = {f3(Lr.R2)}<br/></>:<>{note('지붕활하중 저감(3.6) 미적용')}<br/></>}
+              {ans(`∴ 지붕활하중 Lr = ${f3(Lr.Lr)} kN/m² — 하중조합 (Lr 또는 S)에 반영 · 바닥활하중 L = 0`)}
+            </>):(<>
             {live.reduce?(
               <>영향면적 A = 부하면적 {f2(n(live.AT))} m² × {Lr.k} = {f2(Lr.A)} m² &nbsp;{note('(3.5.2)')}<br/>
                 {Lr.canReduce?<>{eq('C = 0.3 + 4.2/√A')} = {f3(0.3+4.2/Math.sqrt(Lr.A))} → 적용 C = {f3(Lr.C)} &nbsp;{note(`(식 3.5-1, 하한 ${live.multi?'0.4':'0.5'} — 3.5.3)`)}<br/></>:<>{note(`저감 없음 — ${Lr.note}`)}<br/></>}
               </>
             ):<>{note('활하중 저감 미적용')}<br/></>}
             {ans(`∴ 적용 활하중 L = ${f2(Lr.Lo)} × ${f3(Lr.C)}${Lr.part>0?` + ${f2(Lr.part)}`:''} = ${f2(Lr.L)} kN/m²`)}
+            </>)}
           </div>
         </div>
         {/* Ⅳ */}
         <div className="ps" style={{marginBottom:14}}>
-          <div style={SH}>Ⅳ. 적설하중 (S) 산정 — KDS 41 12 00 4.3 · 4.4</div>
+          <div style={SH}>Ⅳ. 적설하중 (S) 산정 — KDS 41 12 00 4.3 · 4.4 · 4.5.1</div>
           <div style={proc}>
             <b>■ 평지붕설하중 Sf = Cb × Ce × Ct × Is × Sg &nbsp;{note('(식 4.3-1)')}</b><br/>
             &nbsp;&nbsp;Cb = 0.7 {note('(4.3.1)')} · Ce = {s.Ce} {note('(표 4.3-1)')} · Ct = {s.Ct} {note('(표 4.3-2)')} · Is = {s.Is} {note('(표 4.3-3)')} · Sg = {s.Sg} kN/m² {note('(그림 4.2-1)')}<br/>
@@ -1896,8 +1968,10 @@ function PrintReport({info,dead,live,snow,wind,seis,R,forPrint=false}){
             {s.lowSlope?(
               <><b>■ 최소설하중 {note('(4.3.5, θ ≤ 15°)')}</b> = {s.Sg<=1.0?`Sg × Is = ${f3(s.Sg*s.Is)}${s.Sg*s.Is<1.0?' < 1.0 → 1.000':''}`:`1.0 × Is = ${f3(s.Is)}`} kN/m² {s.Ss<s.minS?<span style={{color:'#dc2626',fontWeight:700}}>→ 최소값 적용</span>:'→ 산정값 적용'}<br/></>
             ):<>{note('θ > 15° — 최소설하중(4.3.5) 대상 아님')}<br/></>}
-            {ans(`∴ 적용 설하중 S = ${f3(s.S)} kN/m²`)}<br/>
-            {note('※ 불균형설하중(4.5) · 국부설하중(4.6)은 별도 검토')}
+            {ans(`∴ 적용 설하중 S = ${f3(s.S)} kN/m² (균형하중)`)}<br/>
+            {s.unbal?<><b>■ 불균형설하중 {note('(4.5.1, 15° < θ ≤ 70°)')}</b> : 바람 불어오는 쪽 0 · 반대쪽 {eq(`1.5 × Ss = 1.5 × ${f3(s.Ss)}`)} = <b>{f3(s.Sub)} kN/m²</b> {note('— 부재 설계 시 별도 재하')}<br/></>
+              :<>{note(`불균형설하중(4.5.1) : θ = ${s.theta}° ${s.theta<=15?'≤ 15°':'> 70°'} — 고려하지 않음`)}<br/></>}
+            {note('※ 곡면 · 톱날형 지붕(4.5.2 · 4.5.3) · 국부설하중(4.6)은 별도 검토')}
           </div>
         </div>
         {/* Ⅴ */}
@@ -1916,7 +1990,7 @@ function PrintReport({info,dead,live,snow,wind,seis,R,forPrint=false}){
           <div style={SH}>Ⅵ. 지진하중 (E) 산정 — KDS 41 17 00 : 2022 7.2 등가정적해석법</div>
           <div style={proc}>
             <b>■ 설계스펙트럼가속도</b><br/>
-            &nbsp;&nbsp;S = Z × I = {isFinite(e.Z)?e.Z:'—'} × 2.0 = {f3(e.S)}g {note('(3.2, 위험도계수 2400년)')} · 지반 {e.soil} : Fa = {f3(e.Fa)}, Fv = {f3(e.Fv)} {note('(표 4.2-1·4.2-2)')}<br/>
+            &nbsp;&nbsp;S = Z × I = {isFinite(e.Z)?e.Z:'—'} × 2.0 = {f3(e.S)}g {note('(3.2, 위험도계수 2400년)')} · 지반 {e.soil} : Fa = {f3(e.Fa)}, Fv = {f3(e.Fv)} {note(`(표 4.2-1·4.2-2${e.adjFv?' · 4.2.2(2) Fv × 0.8':''}${e.adjS5?' · 4.2.2(3) Fa · Fv × 1.1':''})`)}<br/>
             &nbsp;&nbsp;{eq('SDS = S × 2.5 × Fa × 2/3')} = <b>{f4(e.SDS)}g</b> · {eq('SD1 = S × Fv × 2/3')} = <b>{f4(e.SD1)}g</b> {note('(식 4.2-4·4.2-5)')} · 내진설계범주 <b>{e.sdc}</b> {note(`(내진등급 ${e.grade}, 표 5.2-1·5.2-2)`)}<br/>
             <b>■ 고유주기 · 지진응답계수</b><br/>
             &nbsp;&nbsp;{e.sys.id}. {e.sys.label} — R = {e.R}, Ω₀ = {e.sys.O}, Cd = {e.sys.Cd} {note('(표 6.2-1)')}<br/>
@@ -1936,8 +2010,9 @@ function PrintReport({info,dead,live,snow,wind,seis,R,forPrint=false}){
             <tbody>
               {[
                 ['고정하중','D',f2(D),'kN/m²','KDS 41 12 00 2.2'],
-                ['활하중','L',f2(Lr.L),'kN/m²',`표 3.2-1 ${f2(Lr.Lo)}${Lr.C<1?` × C ${f3(Lr.C)}`:''}${Lr.part>0?' + 칸막이 1.0':''}`],
-                ['적설하중','S',f3(s.S),'kN/m²',`식 4.3-1·4.4-1${s.lowSlope&&s.Ss<s.minS?' · 4.3.5 최소값':''}`],
+                Lr.flags.roof?['지붕활하중','Lr',f3(Lr.Lr),'kN/m²',`표 3.2-1 ${f2(Lr.Lo)}${Lr.roofRed?` × R1 ${f3(Lr.R1)} × R2 ${f3(Lr.R2)} (식 3.6-1)`:''} — (Lr 또는 S)`]
+                  :['활하중','L',f2(Lr.L),'kN/m²',`표 3.2-1 ${f2(Lr.Lo)}${Lr.C<1?` × C ${f3(Lr.C)}`:''}${Lr.part>0?' + 칸막이 1.0':''}`],
+                ['적설하중','S',f3(s.S),'kN/m²',`식 4.3-1·4.4-1${s.lowSlope&&s.Ss<s.minS?' · 4.3.5 최소값':''}${s.unbal?` · 불균형 1.5Ss ${f3(s.Sub)} 별도`:''}`],
                 ['풍압 (주골조)','W',f4(w.W),'kN/m²',`5.15 간편법 · V₀ ${w.V0} m/s · Cf ${f2(w.Cf)}${w.inRange?'':' (범위 외 참고)'}`],
                 ['지진응답계수','Cs',f4(e.Cs),'—',`KDS 41 17 00 · S ${f3(e.S)}g · ${e.soil} · R ${e.R} · 범주 ${e.sdc}`],
                 ['밑면전단력','V',f2(e.V),'kN',`V = Cs × W (W = ${e.W.toFixed(0)} kN)`],
@@ -1962,8 +2037,9 @@ function PrintReport({info,dead,live,snow,wind,seis,R,forPrint=false}){
               {C.list.map((c,i)=>{
                 const isGov=C.gov&&c.id===C.gov.id;
                 const fl=C.fL;
-                const ex={'1.7-1':`1.4×${f2(D)}`,'1.7-2':`1.2×${f2(D)}+1.6×${f2(Lr.L)}+0.5×${f3(s.S)}`,'1.7-3':`1.2×${f2(D)}+1.6×${f3(s.S)}+${fl}×${f2(Lr.L)}`,
-                  '1.7-4':`1.2×${f2(D)}+${fl}×${f2(Lr.L)}+0.5×${f3(s.S)}`,'1.7-5':`1.2×${f2(D)}+${fl}×${f2(Lr.L)}+0.2×${f3(s.S)}`,'1.7-6':`0.9×${f2(D)}`,'1.7-7':`0.9×${f2(D)}`}[c.id];
+                const rs=f3(C.RS);
+                const ex={'1.7-1':`1.4×${f2(D)}`,'1.7-2':`1.2×${f2(D)}+1.6×${f2(Lr.L)}+0.5×${rs}`,'1.7-3':`1.2×${f2(D)}+1.6×${rs}+${fl}×${f2(Lr.L)}`,
+                  '1.7-4':`1.2×${f2(D)}+${fl}×${f2(Lr.L)}+0.5×${rs}`,'1.7-5':`1.2×${f2(D)}+${fl}×${f2(Lr.L)}+0.2×${f3(s.S)}`,'1.7-6':`0.9×${f2(D)}`,'1.7-7':`0.9×${f2(D)}`}[c.id];
                 const lat=c.id==='1.7-4'||c.id==='1.7-6'?`1.0W (${f4(w.W)} kN/m²)`:c.id==='1.7-5'||c.id==='1.7-7'?`1.0E (V ${f2(e.V)} kN)`:c.id==='1.7-3'?'또는 0.5W':'—';
                 return(
                   <tr key={i} style={{background:isGov?'#fffbeb':i%2===0?'white':'#f8fafc'}}>
@@ -1980,6 +2056,7 @@ function PrintReport({info,dead,live,snow,wind,seis,R,forPrint=false}){
           <div style={{background:'#fffbeb',border:BD,borderTop:'none',padding:'10px 14px',fontSize:12,fontWeight:800,color:'#92400e',borderRadius:'0 0 6px 6px'}}>
             ▶ 연직 지배 하중조합 : <b style={{color:'#dc2626'}}>({C.gov.id})</b> {C.gov.f} = <span style={{color:'#dc2626',fontSize:16,fontWeight:900}}>{f3(C.gov.v)} kN/m²</span>
             {C.fL<1?<span style={{fontSize:10,fontWeight:600}}> · 1.7.1(2) L 계수 0.5 적용</span>:null}
+            <div style={{fontSize:10,fontWeight:600,marginTop:3}}>(Lr 또는 S) = {C.rsKey} {f3(C.RS)} kN/m² (Lr {f3(C.Lr)} · S {f3(s.S)} 중 큰 값)</div>
           </div>
         </div>
         {/* Ⅸ */}
@@ -2044,13 +2121,13 @@ function App(){
     name:'만민 건축사 신사옥 신축공사', usage:'업무시설',
     sido:'서울특별시', sigungu:'', importance:'2', superTall:false,
     height:'12', floors:'3', width:'10', depth:'15', area:'150', roofAngle:'5',
-    V0:'28', Sg:'0.5',
+    V0:'28', Sg:'0.5', readNote:'',
   });
   const [dead,setDead]=useState({items:DEFAULT_DL.map(x=>({...x}))});
   const [live,setLive]=useState({cat:'사무실',sub:'일반 사무실',custom:false,customVal:'',partition:true,reduce:false,member:'col',AT:'',multi:false,half:false});
   const [snow,setSnow]=useState({Ce:'1.0',Ct:'1.0',slip:false});
   const [wind,setWind]=useState({Ce:'1.0',exposure:'C',regular:true});
-  const [seis,setSeis]=useState({soil:'S4',sysIdx:'0',customW:false,W:'',equip:''});
+  const [seis,setSeis]=useState({soil:'S4',sysIdx:'0',customW:false,W:'',equip:'',fvDeep:false,s5Unk:false});
   const R=useMemo(()=>ENG.calcAll({info,dead,live,snow,wind,seis}),[info,dead,live,snow,wind,seis]);
   /* v5.1.0 — 매뉴얼 캡처 · 점검용 읽기 창구 (화면 동작에는 관여하지 않음) */
   React.useEffect(()=>{window.__mmLoad={set:{info:setInfo,dead:setDead,live:setLive,snow:setSnow,wind:setWind,seis:setSeis},goTab,R,st:{info,dead,live,snow,wind,seis}};});
@@ -2067,11 +2144,11 @@ function App(){
   ];
   const isDone=i=>{
     if(i===1)return R.dead.D>0;
-    if(i===2)return R.live.L>0;
+    if(i===2)return R.live.L>0||R.live.Lr>0;
     if(i===3)return R.snow.S>0;
     if(i===4)return R.wind.W>0;
     if(i===5)return R.seis.Cs>0;
-    if(i===6)return R.dead.D>0&&R.live.L>0;
+    if(i===6)return R.dead.D>0&&(R.live.L>0||R.live.Lr>0);
     return false;
   };
   const STEP_NAMES=['','고정하중','활하중','적설하중','풍하중','지진하중'];
@@ -2125,7 +2202,7 @@ function App(){
         <div className="sum-bar-inner">
           {[
             ['D', D_v>0?`${f2(D_v)} kN/m²`:null],
-            ['L', L_v>0?`${f2(L_v)} kN/m²`:null],
+            R.live.flags.roof?['Lr', `${f3(R.live.Lr)} kN/m²`]:['L', L_v>0?`${f2(L_v)} kN/m²`:null],
             ['S', S_v>0?`${f3(S_v)} kN/m²`:null],
             ['W', W_v>0?`${f4(W_v)} kN/m²`:null],
             ['Cs', Cs_v>0?f4(Cs_v):null],
@@ -2153,7 +2230,7 @@ function App(){
           ))}
           <span style={{marginLeft:'auto',display:'flex',gap:5,flexWrap:'wrap',alignItems:'center'}}>
             {isDone(1)&&<span className="tag bl" style={{fontSize:10}}>D={f2(D_v)}</span>}
-            {isDone(2)&&<span className="tag gn" style={{fontSize:10}}>L={f2(L_v)}</span>}
+            {isDone(2)&&<span className="tag gn" style={{fontSize:10}}>{R.live.flags.roof?`Lr=${f3(R.live.Lr)}`:`L=${f2(L_v)}`}</span>}
             {isDone(3)&&<span className="tag bl" style={{fontSize:10}}>S={f3(S_v)}</span>}
             {isDone(4)&&<span className="tag tl" style={{fontSize:10}}>W={f4(W_v)}</span>}
             {isDone(5)&&<span className="tag rd" style={{fontSize:10}}>Cs={f4(Cs_v)}</span>}

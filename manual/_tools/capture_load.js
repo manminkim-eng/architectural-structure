@@ -10,9 +10,9 @@ const VW=1440,VH=900,DSF=1.25,PORT=8899;
    ※ B · C의 V₀ · Sg는 매뉴얼 설명용 가정 입력값 — 실무에서는 그림 5.5-1 · 4.2-1에서 건설지점 값을 판독한다 */
 const EX={
  A:{},
- B:{info:{name:'익산시 ○○초등학교 교사동 증축공사',usage:'교육연구시설(학교)',sido:'전북특별자치도',sigungu:'',importance:'1',height:'16',floors:'4',width:'20',depth:'40',area:'800',roofAngle:'5',V0:'30',Sg:'0.8'},
+ B:{info:{readNote:'',name:'익산시 ○○초등학교 교사동 증축공사',usage:'교육연구시설(학교)',sido:'전북특별자치도',sigungu:'',importance:'1',height:'16',floors:'4',width:'20',depth:'40',area:'800',roofAngle:'5',V0:'30',Sg:'0.8'},
     live:{cat:'학교',sub:'교실',reduce:true,member:'col',AT:'150',multi:true},seis:{soil:'S3',sysIdx:'1'}},
- C:{info:{name:'춘천시 ○○동 물류창고 신축공사',usage:'창고시설',sido:'강원특별자치도',sigungu:'춘천시',importance:'2',height:'9',floors:'1',width:'30',depth:'60',area:'1800',roofAngle:'5',V0:'28',Sg:'2.0'},
+ C:{info:{readNote:'',name:'춘천시 ○○동 물류창고 신축공사',usage:'창고시설',sido:'강원특별자치도',sigungu:'춘천시',importance:'2',height:'9',floors:'1',width:'30',depth:'60',area:'1800',roofAngle:'5',V0:'28',Sg:'2.0'},
     live:{cat:'창고',sub:'경량품 저장창고',partition:false},snow:{Ct:'1.1'},seis:{soil:'S2',sysIdx:'9'}},
 };
 const FREEZE=`(()=>{const T=new Date(2026,9,14,10,0,0).getTime();const D=Date;class F extends D{constructor(...a){if(a.length)super(...a);else super(T);}static now(){return T;}}window.Date=F;window.alert=()=>{};window.confirm=()=>true;try{localStorage.clear();sessionStorage.setItem('pwa-banner-dismissed','1');}catch(e){}})()`;
@@ -30,7 +30,7 @@ const CB=i=>`nth:.main-body > .card > .cb > *|${i}`;
 const SHOTS=[
  {id:'s01_overview',pre:"__run('A',0)",clip:'viewport',m:[['.hdr-tabs','작업 탭 · 매뉴얼'],['.sum-bar','요약 스트립 D · L · S · W · Cs · 연직지배'],['.prog-bar','진행 표시'],[CB(0),'프로젝트명 · 용도'],[CB(1),'지역 · 중요도 · 높이 · 층수'],[CB(3),'기본풍속 V₀ · 지상설하중 Sg'],['.fab-wrap','도움말 · 가이드']]},
  {id:'s02_tabs',clip:'.app-header',m:[['nth:.hdr-tab|0','프로젝트'],['nth:.hdr-tab|1','고정하중 D'],['nth:.hdr-tab|2','활하중 L'],['nth:.hdr-tab|3','적설하중 S'],['nth:.hdr-tab|4','풍하중 W'],['nth:.hdr-tab|5','지진하중 E'],['nth:.hdr-tab|6','하중조합'],['nth:.hdr-tab|7','계산서'],['.tb-manual','매뉴얼'],['.hdr-right','근거 기준']]},
- {id:'s03_project',clip:'.main-body > .card',m:[[CB(0),'프로젝트명 · 건축물 용도'],[CB(1),'시·도(시·군) · 중요도 · 높이 · 층수'],[CB(2),'평면 B · D · 바닥면적 · 지붕 경사'],[CB(3),'V₀ (그림 5.5-1) · Sg (그림 4.2-1)'],[CB(4),'지도 판독 안내'],[CB(5),'자동 연동 정보']]},
+ {id:'s03_project',clip:'.main-body > .card',m:[[CB(0),'프로젝트명 · 건축물 용도'],[CB(1),'시·도(시·군) · 중요도 · 높이 · 층수'],[CB(2),'평면 B · D · 바닥면적 · 지붕 경사'],[CB(3),'V₀ (그림 5.5-1) · Sg (그림 4.2-1)'],[CB(4),'V₀ · Sg 판독 근거(A4 표기)'],[CB(5),'지도 판독 안내'],[CB(6),'자동 연동 정보']]},
  {id:'s04_dead',pre:"__tab(1)",clip:'.main-body > .card',m:[[CB(0),'고정하중 항목표'],[CB(1),'항목 추가'],[CB(2),'고정하중 합계 D'],[CB(3),'근거 · 참고값 안내']]},
  {id:'s05_live_a',pre:"__tab(2)",clip:'.main-body > .card',m:[[CB(0),'용도(표 3.2-1)'],[CB(1),'직접 입력 · 칸막이벽 +1.0'],[CB(2),'활하중 저감(3.5)'],[CB(3),'적용 활하중 L'],[CB(4),'저감 제한(3.5.3)']]},
  {id:'s06_snow_a',pre:"__tab(3)",clip:'.main-body > .card',m:[[CB(0),'자동 반영 값 Sg · Is'],[CB(1),'Ce · Ct · 미끄러운 지붕'],[CB(2),'산정식'],[CB(3),'Sf · Ss · 최소설하중 · 설계 S'],[CB(4),'불균형 · 국부설하중 안내']]},

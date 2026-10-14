@@ -46,9 +46,11 @@ const STATIC_ASSETS = [
   './assets/kds/kds411200_fig5-5-1_V0.jpg',
   './assets/kds/kds411200_fig4-2-1_Sg.jpg',
   'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@700;900&display=swap',
-  'https://unpkg.com/react@18/umd/react.production.min.js',
-  'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',
-  'https://unpkg.com/@babel/standalone/babel.min.js'
+  /* v5.1.0 — index.html <script> 와 같은 버전 고정 주소 (종전 @18 · 무버전 주소는 index 요청과 달라 오프라인에서 쓰이지 않았다) */
+  'https://unpkg.com/react@18.3.1/umd/react.production.min.js',
+  'https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js',
+  'https://unpkg.com/@babel/standalone@7.29.7/babel.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
 
 /* ── Install: 정적 자산 캐시 ── */
