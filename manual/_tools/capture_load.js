@@ -3,7 +3,7 @@
 // 입력 설정은 앱의 매뉴얼 캡처용 읽기 창구 window.__mmLoad(set · goTab · R · st)를 쓴다.
 const {chromium}=require(process.env.MM_PW||'playwright');const fs=require('fs');const path=require('path');const {setup,server}=require('./serve');
 const repo=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]);fs.mkdirSync(out,{recursive:true});
-const VW=1440,VH=900,DSF=1.25,PORT=8899;
+const VW=+(process.env.MM_VW||1440),VH=+(process.env.MM_VH||900),DSF=+(process.env.MM_DSF||1.25),PORT=8899;   // 영상(쇼츠)용 좁은 캡처: MM_VW=720 MM_VH=1280 MM_DSF=2
 /* 예제 A = 서울 업무시설 RC 3층 H 12 m · B 10 × D 15 · 중요도(2) · V₀ 28 · Sg 0.5 · S4 · RC 보통모멘트골조 (앱 기본값)
    예제 B = 전북 익산 학교 교실 RC 4층 H 16 m · B 20 × D 40 · 중요도(1) · 활하중 저감(기둥, A_T 150 m², 2개 층 이상) · S3 · RC 중간모멘트골조
    예제 C = 강원 춘천(지진구역 Ⅱ) 경량품 저장창고 1층 H 9 m · B 30 × D 60 · Sg 2.0 · Ct 1.1(비난방) · S2 · 철골 보통중심가새골조
