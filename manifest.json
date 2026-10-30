@@ -1,14 +1,17 @@
 {
-  "name": "건축물 설계하중 통합 산정 — MANMIN",
+  "name": "MANMIN 구조 · 건축물 설계하중 통합 산정",
   "short_name": "설계하중",
   "description": "KDS 41 12 00 : 2022 기준 건축물 설계하중 통합 산정. 고정·활·적설·풍·지진 5종 하중 + LRFD 하중조합 자동 산출",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f2240",
-  "theme_color": "#1e3a5f",
+  "theme_color": "#4c388c",
   "orientation": "any",
   "lang": "ko",
-  "categories": ["productivity", "utilities"],
+  "categories": [
+    "productivity",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "icons/icon-72x72.png",
@@ -65,14 +68,24 @@
       "short_name": "고정하중",
       "description": "고정하중(D) 산정 바로 이동",
       "url": "./index.html#dead",
-      "icons": [{ "src": "icons/icon-96x96.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "icons/icon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "하중조합 확인",
       "short_name": "하중조합",
       "description": "LRFD 하중조합 결과 바로 이동",
       "url": "./index.html#combo",
-      "icons": [{ "src": "icons/icon-96x96.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "icons/icon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
     }
   ]
 }

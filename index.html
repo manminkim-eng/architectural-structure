@@ -23,7 +23,7 @@
 <meta name="twitter:description" content="KDS 41 12 00 : 2022 기준 건축물 설계하중 통합 산정 — 고정하중·활하중·적설하중·풍하중·지진하중 + 강도설계법 하중조합 자동 산출 · MANMIN Ver-5.1">
 <meta name="twitter:image" content="https://manminkim-eng.github.io/architectural-structure/og-card.jpg">
 <meta name="description" content="KDS 41 12 00 : 2022 기준 건축물 설계하중 통합 산정 — 고정하중·활하중·적설하중·풍하중·지진하중 + 강도설계법 하중조합 자동 산출 · MANMIN Ver-5.1"/>
-<meta name="theme-color" content="#1e3a5f"/>
+<meta name="theme-color" content="#4c388c"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="apple-mobile-web-app-title" content="설계하중"/>
@@ -40,6 +40,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="./assets/fonts/manmin-fonts.css"/><!-- 로컬 폴백 폰트 -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
@@ -54,17 +55,17 @@
 .mm-out{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:14px;}
 .mm-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;
   height:40px;padding:0 20px;border-radius:10px;border:1.5px solid transparent;
-  font-family:'Noto Sans KR','Noto Sans KR Local',sans-serif!important;
+  font-family:'Pretendard Variable',Pretendard,'Noto Sans KR','Noto Sans KR Local',sans-serif!important;
   font-size:13px;font-weight:700;letter-spacing:-0.01em;line-height:1;
   white-space:nowrap;cursor:pointer;
   transition:filter .15s ease,transform .15s ease,box-shadow .15s ease;}
 .mm-btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px);
-  box-shadow:0 4px 12px rgba(30,58,95,.22);}
+  box-shadow:0 4px 12px rgba(76,56,140,.22);}
 .mm-btn:active:not(:disabled){transform:translateY(0);box-shadow:none;}
-.mm-btn:focus-visible{outline:2px solid #1E3A5F;outline-offset:2px;}
+.mm-btn:focus-visible{outline:2px solid #4c388c;outline-offset:2px;}
 .mm-btn:disabled{opacity:.55;cursor:default;transform:none;filter:none;box-shadow:none;}
-.mm-btn-pdf{background:#1E3A5F;color:#FFFFFF;border-color:#1E3A5F;}
-.mm-btn-jpg{background:#FFFFFF;color:#1E3A5F;border-color:#1E3A5F;}
+.mm-btn-pdf{background:#4c388c;color:#FFFFFF;border-color:#4c388c;}
+.mm-btn-jpg{background:#FFFFFF;color:#4c388c;border-color:#4c388c;}
 @media(max-width:480px){
   .mm-out{flex-direction:column-reverse;align-items:stretch;gap:6px;}
   .mm-btn{width:100%;height:44px;}
@@ -74,13 +75,13 @@
    기반 리셋 & 토큰
 ════════════════════════════════════════ */
 *{box-sizing:border-box;margin:0;padding:0;}
-:root{
-  --navy:#1e3a5f;--navy-dk:#0f2240;--navy-lt:#2d5186;
+:root{--d:#a78bfa;--d-deep:#4c388c;--d-lt:#c4b5fd;--d-tint:#ede9fe;--d-rgb:167,139,250;--fs-badge:11px;--fs-cap:11.5px;--fs-sm:12.5px;--fs-desc:13px;--fs-body:14px;--fs-sec:16px;--fs-card:17px;--fs-stat:20px;
+  --navy:#4c388c;--navy-dk:#1c1536;--navy-lt:#7a62c3;
   --gold:#e8a020;--gold-lt:#fef3c7;
   --teal:#0d9488;--teal-lt:#ccfbf1;
   --green:#15803d;--green-lt:#dcfce7;
   --red:#dc2626;--red-lt:#fee2e2;
-  --blue:#1d4ed8;--blue-lt:#eff6ff;
+  --blue:#4c388c;--blue-lt:#f5f3ff;
   --bg:#eef2f7;--surface:#fff;
   --bd:#d1dbe8;--bd2:#e2e8f0;
   --txt:#1e293b;--muted:#64748b;--faint:#94a3b8;
@@ -89,11 +90,11 @@
   --sh3:0 10px 40px rgba(0,0,0,.15);
   --r:10px;--rL:16px;
 }
-body{font-family:'Noto Sans KR','Noto Sans KR Local',sans-serif;background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased;min-height:100vh;}
+body{font-family:'Pretendard Variable',Pretendard,'Noto Sans KR','Noto Sans KR Local',sans-serif;background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased;min-height:100vh;}
 /* v5.0 — 소방 마스터와 동일한 셀렉터 범위. 이전의 `*` 유니버설은 적용범위가 지나치게 넓어
    요소별 폰트 지정을 전부 덮었다. 지정 대상을 마스터와 같은 태그 목록으로 좁힌다. */
-input,select,button,td,th,div,span,p,h1,h2,label{font-family:'Noto Sans KR','Noto Sans KR Local',sans-serif!important;}
-.mono{font-family:'JetBrains Mono','Noto Sans KR','Noto Sans KR Local',monospace!important;}
+input,select,button,td,th,div,span,p,h1,h2,label{font-family:'Pretendard Variable',Pretendard,'Noto Sans KR','Noto Sans KR Local',sans-serif!important;}
+.mono{font-family:'JetBrains Mono','Pretendard Variable',Pretendard,'Noto Sans KR','Noto Sans KR Local',monospace!important;}
 input[type=number]::-webkit-inner-spin-button{opacity:.4;}
 /* v5.0 — 소방 마스터 실측값과 동일한 13px. !important 를 뺐으므로
    표 안 좁은 칸의 인라인 지정(11·12px)이 정상 적용된다. */
@@ -143,7 +144,7 @@ input,select{font-size:13px;}
 #dev-stamp{
   display:block;
   text-align:right;
-  font-size:10px;
+  font-size:11px;
   color:#9ca3af;
   letter-spacing:0.08em;
   padding-top:14px;
@@ -173,8 +174,8 @@ input,select{font-size:13px;}
 .rpt-hint{
   display:none;
   align-items:center;gap:6px;
-  background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;
-  padding:8px 13px;font-size:10px;font-weight:600;color:#1E40AF;
+  background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;
+  padding:8px 13px;font-size:10px;font-weight:600;color:#3e2e73;
   margin-bottom:10px;
 }
 @media(max-width:860px){.rpt-hint{display:flex;}}
@@ -193,8 +194,8 @@ input,select{font-size:13px;}
 /* v5.0 — 헤더 고정 해제. 소방 마스터에 position:sticky 는 0건이다.
    3단 헤더가 커서 고정하면 모바일 화면을 상시 점유하고, 탭이 헤더 밖이면 탭만 사라진다. */
 .app-header{
-  background:linear-gradient(135deg,#0a1628 0%,#1e3a5f 50%,#2d5186 100%);
-  color:#fff;padding:0;box-shadow:0 2px 20px rgba(0,0,0,.32);
+  background:linear-gradient(135deg,#1c1536 0%,#30235a 50%,#4c388c 100%);
+  color:#fff;padding:0;box-shadow:0 2px 20px rgba(76,56,140,.35);
 }
 /* ═══ 헤더 높이 v5.0 — 소방 마스터 실측값 (데스크탑·태블릿 162.2px)
    구성 : 상단패딩 20 + 본문 78.2 + 간격 16 + 탭패딩 4 + 탭 44 = 162.2 ═══ */
@@ -222,8 +223,8 @@ input,select{font-size:13px;}
 }
 .hdr-manmin{
   font-family:'Orbitron',sans-serif!important;
-  font-weight:900;font-size:12px;color:#fbbf24;
-  letter-spacing:.08em;text-shadow:0 0 10px rgba(251,191,36,.45);
+  font-weight:900;font-size:12px;color:#c4b5fd;
+  letter-spacing:.08em;text-shadow:0 0 10px rgba(196,181,253,.45);
   white-space:nowrap;display:inline-block;
 }
 .hdr-right{
@@ -233,7 +234,7 @@ input,select{font-size:13px;}
   line-height:normal;flex-shrink:0;   /* v5.0-HDR */
 }
 .hdr-right strong{font-size:13px;font-weight:700;opacity:1;}
-.hdr-right em{font-size:10px;color:#fbbf24;font-style:normal;display:block;margin-top:4px;}
+.hdr-right em{font-size:11px;color:#c4b5fd;font-style:normal;display:block;margin-top:4px;}
 /* 탭이 헤더 안에 통합 */
 .hdr-tabs{
   max-width:1300px;margin:0 auto;
@@ -254,7 +255,7 @@ input,select{font-size:13px;}
 /* v5.0 — 소방 마스터 준용. 완료(✓) 상태 표시를 없애고 활성 탭만 강조한다.
    번호(0~7)는 진행 여부와 무관하게 항상 노출한다. */
 /* v5.0-HDR (2026-09-02 확정) — 활성 탭 단색 배경 + 강조색 바 (01 마스터 구조) */
-.hdr-tab.on{color:#fff;border-bottom-color:#fbbf24;background:#1d4ed8;}
+.hdr-tab.on{color:#fff;border-bottom-color:#c4b5fd;background:#4c388c;}
 /* v5.1.0 — 매뉴얼 버튼 : 탭 막대 오른쪽 끝 (작업지시서 §4) */
 .hdr-tab.tb-manual{margin-left:auto;text-decoration:none;}
 #mm-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:99999;opacity:0;transition:opacity .25s;pointer-events:none}
@@ -268,7 +269,7 @@ input,select{font-size:13px;}
   display:flex;gap:14px;flex-wrap:wrap;align-items:center;   /* v5.0-HDR gap 14 */
 }
 .sum-chip{font-size:12px;color:#94a3b8;display:inline;line-height:normal;}   /* v5.0-HDR — 마스터 span 인라인(18px → 스트립 38px) */
-.sum-chip b{color:#fbbf24;font-family:'JetBrains Mono','Noto Sans KR','Noto Sans KR Local',monospace!important;font-size:12px;font-weight:700;}
+.sum-chip b{color:#c4b5fd;font-family:'JetBrains Mono','Pretendard Variable',Pretendard,'Noto Sans KR','Noto Sans KR Local',monospace!important;font-size:12px;font-weight:700;}
 .sum-chip.na b{color:#475569;}
 /* v5.0 — 헤더 버튼(.ha / .hbtn) 규칙 폐지.
    가이드·계산서·인쇄 버튼을 걷어내며 사용처가 0건이 되었다. */
@@ -281,7 +282,7 @@ input,select{font-size:13px;}
 .ch{background:linear-gradient(90deg,var(--navy-dk) 0%,var(--navy-lt) 100%);color:#fff;padding:13px 18px;display:flex;align-items:center;gap:10px;}
 .ch-icon{font-size:19px;line-height:1;flex-shrink:0;}
 .ch-t{font-size:13.5px;font-weight:800;letter-spacing:-.01em;}
-.ch-s{font-size:10px;opacity:.78;margin-top:1px;}
+.ch-s{font-size:11px;opacity:.78;margin-top:1px;}
 .cb{padding:16px 18px;}
 
 /* ════ 그리드 ════ */
@@ -298,13 +299,13 @@ input,select{font-size:13px;}
 
 /* ════ 폼 요소 ════ */
 .fl{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;display:flex;align-items:center;gap:4px;}
-.fu{font-size:9.5px;background:var(--bg);color:var(--muted);padding:1px 5px;border-radius:4px;}
+.fu{font-size:11px;background:var(--bg);color:var(--muted);padding:1px 5px;border-radius:4px;}
 .fi{
   width:100%;background:var(--bg);border:1.5px solid var(--bd);
   border-radius:7px;padding:8px 11px;font-size:13px;color:var(--txt);
   outline:none;transition:border-color .15s,box-shadow .15s;
 }
-.fi:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(30,58,95,.1);}
+.fi:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(76,56,140,.1);}
 .fs{
   width:100%;background:var(--bg);border:1.5px solid var(--bd);
   border-radius:7px;padding:8px 30px 8px 11px;font-size:13px;color:var(--txt);
@@ -313,7 +314,7 @@ input,select{font-size:13px;}
   background-repeat:no-repeat;background-position:right 10px center;
   transition:border-color .15s;
 }
-.fs:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(30,58,95,.1);}
+.fs:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(76,56,140,.1);}
 
 /* ════ 결과 패널 ════ */
 .rbox{
@@ -329,14 +330,14 @@ input,select{font-size:13px;}
 
 /* ════ 정보 박스 ════ */
 .ibox{background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:11px 14px;font-size:11px;color:#0c4a6e;line-height:1.85;margin-top:10px;}
-.ibox b.law{color:#1e40af;font-weight:800;}
+.ibox b.law{color:#3e2e73;font-weight:800;}
 .wbox{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 13px;font-size:11px;color:#78350f;line-height:1.75;margin-top:10px;}
 .gbox{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 13px;font-size:11px;color:#14532d;line-height:1.75;margin-top:10px;}
 .rbox-light{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 13px;font-size:11px;color:#7f1d1d;line-height:1.75;margin-top:10px;}
 
 /* ════ 태그 ════ */
-.tag{display:inline-flex;align-items:center;gap:3px;border:1px solid;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;line-height:1.5;}
-.tag.bl{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8;}
+.tag{display:inline-flex;align-items:center;gap:3px;border:1px solid;border-radius:5px;padding:2px 7px;font-size:11px;font-weight:700;line-height:1.5;}
+.tag.bl{background:#f5f3ff;border-color:#ddd6fe;color:#4c388c;}
 .tag.gn{background:#f0fdf4;border-color:#bbf7d0;color:#15803d;}
 .tag.am{background:#fffbeb;border-color:#fde68a;color:#92400e;}
 .tag.rd{background:#fef2f2;border-color:#fecaca;color:#dc2626;}
@@ -347,17 +348,17 @@ input,select{font-size:13px;}
   width:100%;background:linear-gradient(135deg,var(--navy),var(--navy-lt));
   color:#fff;border:none;border-radius:10px;padding:13px 20px;
   font-size:14px;font-weight:800;cursor:pointer;margin-top:14px;
-  box-shadow:0 4px 16px rgba(30,58,95,.35);
+  box-shadow:0 4px 16px rgba(76,56,140,.35);
   transition:transform .12s,box-shadow .12s;
   display:flex;align-items:center;justify-content:center;gap:8px;
 }
-.btn-main:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(30,58,95,.42);}
+.btn-main:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(76,56,140,.42);}
 .btn-main:active{transform:none;}
 .btn-main.gn{background:linear-gradient(135deg,var(--green),#16a34a);box-shadow:0 4px 16px rgba(21,128,61,.35);}
 .btn-main.gn:hover{box-shadow:0 7px 22px rgba(21,128,61,.45);}
 .btn-nav{background:var(--surface);border:1.5px solid var(--bd);color:var(--navy);border-radius:9px;padding:10px 20px;font-size:12px;font-weight:800;cursor:pointer;transition:background .15s,border-color .15s;}
 .btn-nav:hover{background:var(--bg);border-color:var(--navy);}
-.btn-nav.fwd{background:var(--navy);color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(30,58,95,.3);}
+.btn-nav.fwd{background:var(--navy);color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(76,56,140,.3);}
 .btn-nav.fwd:hover{background:var(--navy-lt);}
 
 /* ════ 하중 테이블 ════ */
@@ -384,7 +385,7 @@ input,select{font-size:13px;}
 
 /* ════ 최종 패널 ════ */
 .fpanel{
-  background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 60%,#1e40af 100%);
+  background:linear-gradient(135deg,#0f172a 0%,#4c388c 60%,#3e2e73 100%);
   color:#fff;border-radius:var(--rL);padding:20px 20px;margin-top:14px;
   box-shadow:0 8px 36px rgba(15,23,42,.42);
 }
@@ -392,10 +393,10 @@ input,select{font-size:13px;}
 .fpg{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-top:14px;}
 .fpi{background:rgba(255,255,255,.09);border-radius:9px;padding:11px 12px;text-align:center;border:1px solid rgba(255,255,255,.11);}
 .fpi.gov{border-color:rgba(248,113,113,.5);background:rgba(220,38,38,.13);}
-.fpil{font-size:10px;opacity:.72;font-weight:600;margin-bottom:4px;}
+.fpil{font-size:11px;opacity:.72;font-weight:600;margin-bottom:4px;}
 .fpiv{font-size:16px;font-weight:900;color:#fde68a;}
 .fpi.gov .fpiv{color:#fca5a5;}
-.fpiu{font-size:9.5px;opacity:.6;margin-top:2px;}
+.fpiu{font-size:11px;opacity:.6;margin-top:2px;}
 
 /* ════ 진행 표시 ════ */
 .prog-bar{
@@ -403,10 +404,10 @@ input,select{font-size:13px;}
   border:1px solid var(--bd);margin-top:13px;
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
 }
-.ps-item{display:flex;align-items:center;gap:4px;font-size:10.5px;}
-.ps-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;flex-shrink:0;transition:background .2s;}
+.ps-item{display:flex;align-items:center;gap:4px;font-size:11px;}
+.ps-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;transition:background .2s;}
 .ps-dot.done{background:var(--green);color:#fff;}
-.ps-dot.act{background:var(--navy);color:#fff;box-shadow:0 0 0 3px rgba(30,58,95,.2);}
+.ps-dot.act{background:var(--navy);color:#fff;box-shadow:0 0 0 3px rgba(76,56,140,.2);}
 .ps-dot.idle{background:var(--bg);color:var(--faint);border:1.5px solid var(--bd);}
 .ps-arrow{color:var(--bd);font-size:12px;}
 
@@ -439,7 +440,7 @@ input,select{font-size:13px;}
 .mat-title{font-size:11px;font-weight:800;color:var(--navy);margin-bottom:8px;}
 
 /* ════ 검증 배지 ════ */
-.vbadge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;}
+.vbadge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;}
 .vbadge.ok{background:#dcfce7;color:#15803d;}
 .vbadge.warn{background:#fff7ed;color:#b45309;}
 .vbadge.err{background:#fee2e2;color:#dc2626;}
@@ -453,7 +454,7 @@ input,select{font-size:13px;}
 .fbox .eq{font-weight:800;color:var(--navy);}
 
 /* ════ 소계 행 ════ */
-.subtot{background:#eff6ff!important;font-weight:800;color:var(--blue)!important;}
+.subtot{background:#f5f3ff!important;font-weight:800;color:var(--blue)!important;}
 
 /* ════ 분리선 ════ */
 hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
@@ -466,22 +467,22 @@ hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
   background:linear-gradient(135deg,var(--navy-dk),var(--navy));
   color:#fff;border:none;border-radius:14px;
   padding:10px 14px;cursor:pointer;min-width:52px;position:relative;
-  box-shadow:0 4px 20px rgba(30,58,95,.52);
+  box-shadow:0 4px 20px rgba(76,56,140,.52);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   line-height:1.3;transition:transform .15s,box-shadow .15s;
 }
-.fab:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(30,58,95,.65);}
+.fab:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(76,56,140,.65);}
 /* 보조 FAB — 같은 남색 계열의 밝은 단계로 구분한다(마스터의 2단계 방식) */
-.fab.sub{background:linear-gradient(135deg,var(--navy-lt),var(--navy));box-shadow:0 4px 20px rgba(45,81,134,.50);}
-.fab.sub:hover{box-shadow:0 8px 28px rgba(45,81,134,.62);}
+.fab.sub{background:linear-gradient(135deg,var(--navy-lt),var(--navy));box-shadow:0 4px 20px rgba(122,98,195,.50);}
+.fab.sub:hover{box-shadow:0 8px 28px rgba(122,98,195,.62);}
 .fab .fi-icon{font-size:20px;line-height:1;}
-.fab .fi-lbl{font-size:10px;font-weight:800;letter-spacing:.04em;}
-.fab .fi-sub{font-size:9px;opacity:.8;}
+.fab .fi-lbl{font-size:11px;font-weight:800;letter-spacing:.04em;}
+.fab .fi-sub{font-size:11px;opacity:.8;}
 /* 미열람 뱃지 */
 .fab .badge{
   position:absolute;top:-5px;right:-5px;
   background:#dc2626;color:#fff;border-radius:50%;
-  width:16px;height:16px;font-size:9px;font-weight:800;
+  width:16px;height:16px;font-size:11px;font-weight:800;
   display:flex;align-items:center;justify-content:center;
   border:2px solid #fff;
 }
@@ -489,7 +490,7 @@ hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
 /* ════ PWA 설치 배너 ════ */
 .pwa-banner{
   position:fixed;bottom:0;left:0;right:0;z-index:2000;
-  background:linear-gradient(135deg,#0a1628 0%,#1e3a5f 100%);
+  background:linear-gradient(135deg,#1c1536 0%,#4c388c 100%);
   color:#fff;padding:14px 20px;
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   box-shadow:0 -4px 24px rgba(0,0,0,.38);
@@ -500,10 +501,10 @@ hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
 @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
 .pwa-banner-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}
 .pwa-banner-icon{width:46px;height:46px;border-radius:12px;flex-shrink:0;
-  background:linear-gradient(135deg,#1e3a5f,#2d5186);border:1.5px solid rgba(255,255,255,.2);
+  background:linear-gradient(135deg,#4c388c,#7a62c3);border:1.5px solid rgba(255,255,255,.2);
   display:flex;align-items:center;justify-content:center;font-size:22px;}
 .pwa-banner-text .pwa-ttl{font-size:13px;font-weight:800;margin-bottom:2px;}
-.pwa-banner-text .pwa-sub{font-size:10.5px;opacity:.72;line-height:1.5;}
+.pwa-banner-text .pwa-sub{font-size:11px;opacity:.72;line-height:1.5;}
 .pwa-banner-btns{display:flex;gap:8px;align-items:center;flex-shrink:0;}
 .pwa-btn-install{
   background:linear-gradient(135deg,#e8a020,#fbbf24);color:#1a1a1a;
@@ -571,26 +572,26 @@ hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
 .ref-item:hover{border-color:var(--navy);background:#f8fafc;}
 .ref-item-icon{width:38px;height:38px;border-radius:9px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;font-size:18px;}
-.ref-item-icon.kds{background:#eff6ff;}
+.ref-item-icon.kds{background:#f5f3ff;}
 .ref-item-icon.ref{background:#f0fdf4;}
 .ref-item-info{flex:1;min-width:0;}
 .ref-item-title{font-size:12px;font-weight:800;color:var(--txt);margin-bottom:2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ref-item-sub{font-size:10.5px;color:var(--muted);line-height:1.5;}
-.ref-item-badge{font-size:9px;font-weight:700;background:#eff6ff;color:#1d4ed8;
+.ref-item-sub{font-size:11px;color:var(--muted);line-height:1.5;}
+.ref-item-badge{font-size:11px;font-weight:700;background:#f5f3ff;color:#4c388c;
   border-radius:4px;padding:2px 6px;flex-shrink:0;}
 .ref-item-badge.gn{background:#f0fdf4;color:#15803d;}
 
 /* PWA 설치 안내 카드 */
 .pwa-guide-card{
-  background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);
+  background:linear-gradient(135deg,#0f172a 0%,#4c388c 100%);
   border-radius:12px;padding:14px 16px;margin-bottom:14px;color:#fff;
 }
 .pwa-guide-card h3{font-size:13px;font-weight:800;margin-bottom:8px;
   display:flex;align-items:center;gap:6px;}
 .pwa-guide-step{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:11.5px;opacity:.88;}
 .pwa-guide-step .n{width:20px;height:20px;border-radius:50%;background:rgba(251,191,36,.25);
-  color:#fbbf24;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  color:#fbbf24;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .pwa-install-btn-full{
   width:100%;background:linear-gradient(135deg,#e8a020,#fbbf24);color:#1a1a1a;
   border:none;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:800;
@@ -607,7 +608,7 @@ hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
   .pwa-banner{padding:12px 14px;gap:10px;}
   .pwa-banner-icon{width:38px;height:38px;font-size:18px;}
   .pwa-banner-text .pwa-ttl{font-size:12px;}
-  .pwa-banner-text .pwa-sub{font-size:9.5px;}
+  .pwa-banner-text .pwa-sub{font-size:11px;}
   .pwa-btn-install{padding:8px 12px;font-size:11.5px;}
   .pwa-btn-dismiss{padding:8px 10px;font-size:11px;}
 }
@@ -647,7 +648,7 @@ hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
 .mo-txt{font-size:11.5px;color:var(--txt);line-height:1.9;}
 .mo-fml{background:#f0f4f8;border-radius:8px;padding:11px 13px;font-size:11.5px;border-left:3px solid var(--navy);margin:7px 0;line-height:1.8;color:var(--navy-dk);}
 .mo-ref{background:#fffbeb;border-radius:7px;padding:9px 12px;font-size:11px;color:#78350f;border:1px solid #fde68a;margin-top:10px;line-height:1.85;}
-.mo-ref b{color:#1e40af;}
+.mo-ref b{color:#3e2e73;}
 
 /* ════ 반응형 태블릿 ════ */
 @media(max-width:1024px){
@@ -692,6 +693,17 @@ hr.dv{border:none;border-top:1px solid var(--bd2);margin:14px 0;}
 <style id="mm-r1">/* R1 (2026-09-04 · 지시서 §20-1 · S10 소급) — 인쇄 PDF 하단 각인 MANMIN · Ver 비표시. 버전은 A4 푸터 [MANMIN-Ver5.0] 이 담당 */
 #dev-stamp,#dev-stamp-print,#mm-print-stamp,.dev-stamp{display:none!important;}
 @media print{#dev-stamp,#dev-stamp-print,#mm-print-stamp,.dev-stamp{display:none!important;}}</style>
+<style id="mm-foot-css">/* 하단 버전 표시 — 건축 도구와 같은 형식 · 화면 폭 전체 (2026-10-31) */
+footer.mm-foot{position:relative;z-index:1;border-top:1px solid #e4e9f0;background:#fff;padding:20px;margin-top:10px;width:100%;box-sizing:border-box;align-self:stretch;font-family:'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif}
+.mm-foot .foot-inner{max-width:1320px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.mm-foot .foot-nm{font-weight:900;font-size:13px;color:#4c388c;letter-spacing:.06em}
+.mm-foot .foot-desc{font-size:11px;color:#64748b;line-height:1.6}
+.mm-foot .foot-copy{font-size:11px;color:#64748b;font-family:'DM Mono',ui-monospace,monospace}
+@media screen{sub,sup{font-size:max(.75em,11px)}[class*="a4"] sub,[class*="a4"] sup,#report-zone sub,#report-zone sup{font-size:smaller}}
+/* Pretendard 전환 후 헤더 높이를 종전(Noto 기본 줄 높이)과 같게 */
+.hdr-eyebrow{line-height:16px}.hdr-sub{line-height:16px}.hdr-manmin{line-height:17px;vertical-align:top}.hdr-tab{line-height:19px}.sum-chip{line-height:18px}.hdr-right{line-height:1.45}
+@media print{footer.mm-foot{display:none!important}}
+</style>
 </head>
 <body>
 <div id="root"></div>
@@ -1081,7 +1093,7 @@ function GuideModal({onClose}){
           <tbody>{MAT.map((m,i)=>(
             <tr key={i} style={{borderBottom:'1px solid #f0f4f8'}}>
               <td style={{padding:'4px 8px'}}>{m.g} — {m.name}</td>
-              <td style={{padding:'4px 8px',textAlign:'right',fontWeight:700,color:'#1e3a5f'}}>{m.w}</td>
+              <td style={{padding:'4px 8px',textAlign:'right',fontWeight:700,color:'#4c388c'}}>{m.w}</td>
             </tr>
           ))}</tbody>
         </table>
@@ -1210,7 +1222,7 @@ function GuideModal({onClose}){
           <div className="mo-hdr">
             <div>
               <div style={{fontSize:14,fontWeight:900}}>📋 사용 가이드 · 계산식 해설</div>
-              <div style={{fontSize:10,opacity:.72,marginTop:2}}>KDS 41 12 00 : 2022 / KDS 41 17 00 : 2022 / KDS 17 10 00</div>
+              <div style={{fontSize:11,opacity:.72,marginTop:2}}>KDS 41 12 00 : 2022 / KDS 41 17 00 : 2022 / KDS 17 10 00</div>
             </div>
             <button className="mo-cls" onClick={onClose}>✕</button>
           </div>
@@ -1288,12 +1300,12 @@ function StepProject({info,setInfo,R}){
           <div>
             <div className="fl">기본풍속 V₀ <span className="fu">m/s</span></div>
             <input className="fi" type="number" min="20" max="60" step="1" value={info.V0||''} onChange={e=>set('V0',e.target.value)}/>
-            <div style={{fontSize:10,color:'#64748b',marginTop:3}}>그림 5.5-1 (재현기간 500년) — 등풍속선 사이면 큰 값</div>
+            <div style={{fontSize:11,color:'#64748b',marginTop:3}}>그림 5.5-1 (재현기간 500년) — 등풍속선 사이면 큰 값</div>
           </div>
           <div>
             <div className="fl">기본지상설하중 Sg <span className="fu">kN/m²</span></div>
             <input className="fi" type="number" min="0" max="10" step="0.05" value={info.Sg||''} onChange={e=>set('Sg',e.target.value)}/>
-            <div style={{fontSize:10,color:'#64748b',marginTop:3}}>그림 4.2-1 — 지역 등설하중선에서 읽음</div>
+            <div style={{fontSize:11,color:'#64748b',marginTop:3}}>그림 4.2-1 — 지역 등설하중선에서 읽음</div>
           </div>
           <div style={{display:'flex',alignItems:'flex-end',paddingBottom:4}}>
             <label style={{display:'flex',alignItems:'center',gap:6,fontSize:12,fontWeight:700,cursor:'pointer'}}>
@@ -1318,7 +1330,7 @@ function StepProject({info,setInfo,R}){
             <span className="tag bl">🌬️ V₀ = {n(info.V0)} m/s</span>
             <span className="tag bl">❄️ Sg = {n(info.Sg)} kN/m²</span>
           </div>
-          <div style={{fontSize:10,color:'#475569',marginTop:6}}>중요도({info.importance||'2'}) — {imp.desc} (KDS 41 10 05 : 2024 3절 요약)</div>
+          <div style={{fontSize:11,color:'#475569',marginTop:6}}>중요도({info.importance||'2'}) — {imp.desc} (KDS 41 10 05 : 2024 3절 요약)</div>
         </div>
       </div>
     </div>
@@ -1383,7 +1395,7 @@ function StepDead({dead,setDead,R}){
                       :<span style={{fontSize:11,color:'#94a3b8',padding:'0 4px'}}>—</span>}
                   </td>
                   <td style={{textAlign:'center'}}><input type="checkbox" checked={!!it.calc} onChange={e=>update(idx,'calc',e.target.checked)} style={{cursor:'pointer',width:14,height:14}}/></td>
-                  <td style={{textAlign:'right',fontWeight:700,fontFamily:"'JetBrains Mono','Noto Sans KR','Noto Sans KR Local',monospace",color:'#1e3a5f'}}>{renderKn(it)}</td>
+                  <td style={{textAlign:'right',fontWeight:700,fontFamily:"'JetBrains Mono','Pretendard Variable',Pretendard,'Noto Sans KR','Noto Sans KR Local',monospace",color:'#4c388c'}}>{renderKn(it)}</td>
                   <td style={{textAlign:'center'}}><input type="checkbox" checked={!!it.use} onChange={e=>update(idx,'use',e.target.checked)} style={{cursor:'pointer',width:14,height:14}}/></td>
                   <td style={{textAlign:'center'}}>
                     <button onClick={()=>removeRow(idx)} style={{background:'#fee2e2',border:'none',borderRadius:5,color:'#dc2626',width:24,height:24,cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',margin:'auto'}}>×</button>
@@ -1393,7 +1405,7 @@ function StepDead({dead,setDead,R}){
             </tbody>
           </table>
         </div>
-        <button onClick={addRow} style={{marginTop:8,background:'#eff6ff',border:'1.5px dashed #93c5fd',borderRadius:8,padding:'7px 0',fontSize:12,color:'#1d4ed8',fontWeight:700,cursor:'pointer',width:'100%'}}>+ 항목 추가</button>
+        <button onClick={addRow} style={{marginTop:8,background:'#f5f3ff',border:'1.5px dashed #c4b5fd',borderRadius:8,padding:'7px 0',fontSize:12,color:'#4c388c',fontWeight:700,cursor:'pointer',width:'100%'}}>+ 항목 추가</button>
         <div className="rbox">
           <div className="rrow"><span className="rlbl">적용 항목 수</span><span style={{fontSize:12,color:'#a7f3d0'}}>{items.filter(it=>it.use).length} 개</span></div>
           <div className="rrow"><span className="rlbl">고정하중 합계 <b>D</b></span><span className="rval lg">{f2(R.dead.D)} kN/m²</span></div>
@@ -1449,7 +1461,7 @@ function StepLive({live,setLive,R}){
         <div style={{background:'#f0f4f8',border:'1px solid #d1dbe8',borderRadius:8,padding:'11px 13px'}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
             <input type="checkbox" checked={!!live.reduce} onChange={e=>set('reduce',e.target.checked)} style={{width:14,height:14}}/>
-            <div style={{fontWeight:800,fontSize:12,color:'#1e3a5f'}}>{rf?'📉 지붕활하중의 저감 (3.6.1) 적용':'📉 활하중의 저감 (3.5) 적용'}</div>
+            <div style={{fontWeight:800,fontSize:12,color:'#4c388c'}}>{rf?'📉 지붕활하중의 저감 (3.6.1) 적용':'📉 활하중의 저감 (3.5) 적용'}</div>
           </div>
           {live.reduce&&rf&&(
             <div className="g3" style={{gap:10}}>
@@ -1676,7 +1688,7 @@ function StepSeismic({seis,setSeis,info,R}){
             <select className="fs" value={seis.soil} onChange={ev=>set('soil',ev.target.value)}>
               {Object.keys(SOIL_DESC).map(k=><option key={k} value={k}>{k} — {SOIL_DESC[k]}</option>)}
             </select>
-            <div style={{fontSize:10,color:'#64748b',marginTop:3}}>자료가 부족하고 S5 가능성이 없으면 S4 적용 가능 (4.1.1③)</div>
+            <div style={{fontSize:11,color:'#64748b',marginTop:3}}>자료가 부족하고 S5 가능성이 없으면 S4 적용 가능 (4.1.1③)</div>
             <label style={{display:'flex',alignItems:'flex-start',gap:6,fontSize:11,fontWeight:700,marginTop:6,cursor:seis.soil==='S4'?'pointer':'not-allowed',opacity:seis.soil==='S4'?1:.45}}>
               <input type="checkbox" checked={!!seis.fvDeep&&seis.soil==='S4'} disabled={seis.soil!=='S4'} onChange={ev=>set('fvDeep',ev.target.checked)} style={{width:13,height:13,marginTop:1}}/>
               4.2.2(2) 기반암 깊이 20 m 초과 · 평균 전단파속도 360 m/s 이상 → Fv × 80% (S4)
@@ -1691,7 +1703,7 @@ function StepSeismic({seis,setSeis,info,R}){
             <select className="fs" value={String(seis.sysIdx)} onChange={ev=>set('sysIdx',ev.target.value)}>
               {STRUCT_SYS.map((s,i)=><option key={i} value={i}>{s.id}. {s.label} (R={s.R})</option>)}
             </select>
-            <div style={{fontSize:10,color:'#64748b',marginTop:3}}>Ω₀ = {e.sys.O} · Cd = {e.sys.Cd} · Ta = {e.sys.Ct} × {e.hn}^{e.sys.x}</div>
+            <div style={{fontSize:11,color:'#64748b',marginTop:3}}>Ω₀ = {e.sys.O} · Cd = {e.sys.Cd} · Ta = {e.sys.Ct} × {e.hn}^{e.sys.x}</div>
           </div>
           <div>
             <div className="fl">유효 건물 중량 W <span className="fu">kN</span></div>
@@ -1701,7 +1713,7 @@ function StepSeismic({seis,setSeis,info,R}){
             </div>
             {seis.customW
               ?<input className="fi" type="number" min="0" step="100" value={seis.W||''} onChange={ev=>set('W',ev.target.value)}/>
-              :<div style={{background:'#f0f4f8',border:'1.5px solid #d1dbe8',borderRadius:7,padding:'8px 11px',fontSize:12,color:'#1e3a5f',fontWeight:700}}>{e.Wauto.toFixed(0)} kN <span style={{fontSize:10,color:'#64748b'}}>(7.2.1 자동)</span></div>}
+              :<div style={{background:'#f0f4f8',border:'1.5px solid #d1dbe8',borderRadius:7,padding:'8px 11px',fontSize:12,color:'#4c388c',fontWeight:700}}>{e.Wauto.toFixed(0)} kN <span style={{fontSize:11,color:'#64748b'}}>(7.2.1 자동)</span></div>}
           </div>
         </div>
         {!seis.customW&&(
@@ -1742,16 +1754,16 @@ function StepCombo({live,setLive,R}){
       <div className="ch"><span className="ch-icon">⚖️</span><div><div className="ch-t">강도설계법 하중조합</div><div className="ch-s">KDS 41 12 00 1.7.1 — 식 (1.7-1) ~ (1.7-7) · 연직 단위면적 하중 + 동반 수평하중</div></div></div>
       <div className="cb">
         <div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:14}}>
-          {[['D',f3(D),'kN/m²','#eff6ff','#bfdbfe','#1d4ed8'],
+          {[['D',f3(D),'kN/m²','#f5f3ff','#ddd6fe','#4c388c'],
             ['L',f3(L),'kN/m²','#f0fdf4','#bbf7d0','#15803d'],
             ['Lr',f3(C.Lr),'kN/m² (지붕)','#f0fdf4','#bbf7d0','#15803d'],
-            ['S',f3(S),'kN/m²','#eff6ff','#bfdbfe','#0284c7'],
+            ['S',f3(S),'kN/m²','#f5f3ff','#ddd6fe','#0284c7'],
             ['W',f4(R.wind.W),'kN/m² (수평)','#f0fdfa','#99f6e4','#0f766e'],
             ['E : V',f2(R.seis.V),'kN (수평)','#fef2f2','#fecaca','#dc2626'],
           ].map(([lbl,val,unit,bg,bd,clr])=>(
             <div key={lbl} style={{background:bg,border:`1.5px solid ${bd}`,borderRadius:9,padding:'8px 12px',minWidth:96,textAlign:'center'}}>
               <div className="mono" style={{fontSize:16,fontWeight:900,color:clr}}>{val}</div>
-              <div style={{fontSize:10,fontWeight:700,color:'#64748b',marginTop:2}}>{lbl} [{unit}]</div>
+              <div style={{fontSize:11,fontWeight:700,color:'#64748b',marginTop:2}}>{lbl} [{unit}]</div>
             </div>
           ))}
         </div>
@@ -1777,8 +1789,8 @@ function StepCombo({live,setLive,R}){
                     <td className="cn">({c.id})</td>
                     <td style={{textAlign:'left',paddingLeft:8,fontSize:11}}>{c.f}</td>
                     <td className="cv mono">{f3(c.v)}</td>
-                    <td style={{textAlign:'center',fontSize:10,color:'#475569'}}>{c.lat||'—'}</td>
-                    <td style={{textAlign:'center',fontSize:10,fontWeight:isGov?900:400,color:isGov?'#dc2626':'#64748b'}}>{isGov?'▶ 연직 지배':c.min?'최소 중력':''}</td>
+                    <td style={{textAlign:'center',fontSize:11,color:'#475569'}}>{c.lat||'—'}</td>
+                    <td style={{textAlign:'center',fontSize:11,fontWeight:isGov?900:400,color:isGov?'#dc2626':'#64748b'}}>{isGov?'▶ 연직 지배':c.min?'최소 중력':''}</td>
                   </tr>
                 );
               })}
@@ -1882,11 +1894,11 @@ function PrintReport({info,dead,live,snow,wind,seis,R,forPrint=false}){
   const imp=IMPORTANCE[info.importance||'2']||{};
   const today=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
   const BD='1px solid #c8d8e8';
-  const TH={background:'#1e3a5f',color:'white',padding:'7px 10px',textAlign:'center',fontWeight:700,fontSize:11,border:BD};
-  const TD=(extra={})=>({padding:'6px 10px',textAlign:'center',border:BD,fontSize:11,fontFamily:"'JetBrains Mono','Noto Sans KR','Noto Sans KR Local',monospace",...extra});
-  const SH={background:'#1e3a5f',color:'white',padding:'7px 12px',fontSize:13,fontWeight:800,borderRadius:'6px 6px 0 0',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact'};
-  const proc={background:'#f8fafc',border:BD,borderTop:'none',padding:'10px 14px',fontSize:10,lineHeight:1.95,color:'#1e293b',borderRadius:'0 0 6px 6px',fontFamily:"'JetBrains Mono','Noto Sans KR','Noto Sans KR Local',monospace"};
-  const eq=(txt)=><span style={{fontWeight:900,color:'#1e3a5f'}}>{txt}</span>;
+  const TH={background:'#4c388c',color:'white',padding:'7px 10px',textAlign:'center',fontWeight:700,fontSize:11,border:BD};
+  const TD=(extra={})=>({padding:'6px 10px',textAlign:'center',border:BD,fontSize:11,fontFamily:"'JetBrains Mono','Pretendard Variable',Pretendard,'Noto Sans KR','Noto Sans KR Local',monospace",...extra});
+  const SH={background:'#4c388c',color:'white',padding:'7px 12px',fontSize:13,fontWeight:800,borderRadius:'6px 6px 0 0',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact'};
+  const proc={background:'#f8fafc',border:BD,borderTop:'none',padding:'10px 14px',fontSize:11,lineHeight:1.95,color:'#1e293b',borderRadius:'0 0 6px 6px',fontFamily:"'JetBrains Mono','Pretendard Variable',Pretendard,'Noto Sans KR','Noto Sans KR Local',monospace"};
+  const eq=(txt)=><span style={{fontWeight:900,color:'#4c388c'}}>{txt}</span>;
   const ans=(txt)=><span style={{fontWeight:900,color:'#dc2626',fontSize:12}}>{txt}</span>;
   const note=(txt)=><span style={{color:'#6b7280',fontSize:11}}>{txt}</span>;
   const wrapProps=forPrint?{id:'print-report'}:{};
@@ -1937,18 +1949,18 @@ function PrintReport({info,dead,live,snow,wind,seis,R,forPrint=false}){
                 const wv=n(it.w), t=n(it.t), kn=it.calc?wv*t:wv;
                 return(
                   <tr key={i} style={{background:i%2===0?'white':'#f8fafc'}}>
-                    <td style={{...TD({textAlign:'left'}),fontFamily:"'Noto Sans KR',sans-serif",fontWeight:600}}>{it.name||'—'}</td>
-                    <td style={TD({textAlign:'left',fontFamily:"'Noto Sans KR',sans-serif"})}>{it.mat||'—'}</td>
+                    <td style={{...TD({textAlign:'left'}),fontFamily:"'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif",fontWeight:600}}>{it.name||'—'}</td>
+                    <td style={TD({textAlign:'left',fontFamily:"'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif"})}>{it.mat||'—'}</td>
                     <td style={TD()}>{it.calc?wv.toFixed(1):'—'}</td>
                     <td style={TD()}>{it.calc?t.toFixed(3):'—'}</td>
                     <td style={TD({textAlign:'left',paddingLeft:8})}>{it.calc?`${wv.toFixed(2)} × ${t.toFixed(3)}`:'직접 입력'}</td>
-                    <td style={{...TD(),fontWeight:700,color:'#1e3a5f'}}>{kn.toFixed(3)}</td>
+                    <td style={{...TD(),fontWeight:700,color:'#4c388c'}}>{kn.toFixed(3)}</td>
                   </tr>
                 );
               })}
-              <tr style={{background:'#eff6ff'}}>
-                <td colSpan={5} style={{...TD({textAlign:'right',fontFamily:"'Noto Sans KR',sans-serif"}),fontWeight:800,color:'#1e3a5f'}}>합계 D =</td>
-                <td style={{...TD(),fontWeight:900,fontSize:12,color:'#1e3a5f'}}>{f2(D)} kN/m²</td>
+              <tr style={{background:'#f5f3ff'}}>
+                <td colSpan={5} style={{...TD({textAlign:'right',fontFamily:"'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif"}),fontWeight:800,color:'#4c388c'}}>합계 D =</td>
+                <td style={{...TD(),fontWeight:900,fontSize:12,color:'#4c388c'}}>{f2(D)} kN/m²</td>
               </tr>
             </tbody>
           </table>
@@ -2036,11 +2048,11 @@ function PrintReport({info,dead,live,snow,wind,seis,R,forPrint=false}){
                 ['밑면전단력','V',f2(e.V),'kN',`V = Cs × W (W = ${e.W.toFixed(0)} kN)`],
               ].map(([nm,sym,val,unit,nt],i)=>(
                 <tr key={i} style={{background:i%2===0?'white':'#f8fafc'}}>
-                  <td style={{...TD({textAlign:'left',fontFamily:"'Noto Sans KR',sans-serif"}),fontWeight:700}}>{nm}</td>
-                  <td style={{...TD(),fontWeight:900,color:'#1e3a5f'}}>{sym}</td>
-                  <td style={{...TD(),fontWeight:900,fontSize:12,color:'#1e3a5f'}}>{val}</td>
+                  <td style={{...TD({textAlign:'left',fontFamily:"'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif"}),fontWeight:700}}>{nm}</td>
+                  <td style={{...TD(),fontWeight:900,color:'#4c388c'}}>{sym}</td>
+                  <td style={{...TD(),fontWeight:900,fontSize:12,color:'#4c388c'}}>{val}</td>
                   <td style={TD()}>{unit}</td>
-                  <td style={{...TD({textAlign:'left',fontFamily:"'Noto Sans KR',sans-serif"}),fontSize:10,color:'#4b5563'}}>{nt}</td>
+                  <td style={{...TD({textAlign:'left',fontFamily:"'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif"}),fontSize:11,color:'#4b5563'}}>{nt}</td>
                 </tr>
               ))}
             </tbody>
@@ -2062,10 +2074,10 @@ function PrintReport({info,dead,live,snow,wind,seis,R,forPrint=false}){
                 return(
                   <tr key={i} style={{background:isGov?'#fffbeb':i%2===0?'white':'#f8fafc'}}>
                     <td style={{...TD(),fontWeight:700,color:isGov?'#dc2626':'inherit'}}>({c.id})</td>
-                    <td style={{...TD({textAlign:'left',fontFamily:"'Noto Sans KR',sans-serif"}),paddingLeft:9,fontSize:10}}>{c.f}</td>
-                    <td style={{...TD({textAlign:'left'}),fontSize:10,color:'#475569',paddingLeft:9}}>{ex}</td>
-                    <td style={{...TD(),fontWeight:isGov?900:600,fontSize:isGov?13:11,color:isGov?'#0f2240':'inherit'}}>{f3(c.v)}</td>
-                    <td style={{...TD({fontFamily:"'Noto Sans KR',sans-serif"}),fontSize:10,color:'#475569'}}>{lat}</td>
+                    <td style={{...TD({textAlign:'left',fontFamily:"'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif"}),paddingLeft:9,fontSize:11}}>{c.f}</td>
+                    <td style={{...TD({textAlign:'left'}),fontSize:11,color:'#475569',paddingLeft:9}}>{ex}</td>
+                    <td style={{...TD(),fontWeight:isGov?900:600,fontSize:isGov?13:11,color:isGov?'#1c1536':'inherit'}}>{f3(c.v)}</td>
+                    <td style={{...TD({fontFamily:"'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif"}),fontSize:11,color:'#475569'}}>{lat}</td>
                   </tr>
                 );
               })}
@@ -2073,12 +2085,12 @@ function PrintReport({info,dead,live,snow,wind,seis,R,forPrint=false}){
           </table>
           <div style={{background:'#fffbeb',border:BD,borderTop:'none',padding:'10px 14px',fontSize:12,fontWeight:800,color:'#92400e',borderRadius:'0 0 6px 6px'}}>
             ▶ 연직 지배 하중조합 : <b style={{color:'#dc2626'}}>({C.gov.id})</b> {C.gov.f} = <span style={{color:'#dc2626',fontSize:16,fontWeight:900}}>{f3(C.gov.v)} kN/m²</span>
-            {C.fL<1?<span style={{fontSize:10,fontWeight:600}}> · 1.7.1(2) L 계수 0.5 적용</span>:null}
-            <div style={{fontSize:10,fontWeight:600,marginTop:3}}>(Lr 또는 S) = {C.rsKey} {f3(C.RS)} kN/m² (Lr {f3(C.Lr)} · S {f3(s.S)} 중 큰 값)</div>
+            {C.fL<1?<span style={{fontSize:11,fontWeight:600}}> · 1.7.1(2) L 계수 0.5 적용</span>:null}
+            <div style={{fontSize:11,fontWeight:600,marginTop:3}}>(Lr 또는 S) = {C.rsKey} {f3(C.RS)} kN/m² (Lr {f3(C.Lr)} · S {f3(s.S)} 중 큰 값)</div>
           </div>
         </div>
         {/* Ⅸ */}
-        <div className="ps" style={{fontSize:10,color:'#4b5563',lineHeight:1.95,background:'#f8fafc',border:BD,borderRadius:6,padding:'11px 14px'}}>
+        <div className="ps" style={{fontSize:11,color:'#4b5563',lineHeight:1.95,background:'#f8fafc',border:BD,borderRadius:6,padding:'11px 14px'}}>
           <b style={{color:'#1e293b',fontSize:11}}>▣ 적용 기준 및 법령</b><br/>
           ① <b>건축구조기준</b> 국토교통부고시 제2024-846호(2024.12.24. 시행) — <b>KDS 41 12 00 : 2022</b> 건축물 설계하중 · <b>KDS 41 17 00 : 2022</b> 건축물 내진설계기준 · <b>KDS 41 10 05 : 2024</b> 건축구조기준 총칙<br/>
           ② <b>KDS 17 10 00</b> 내진설계 일반 — 국토교통부고시 제2024-147호(2024.3.27. 시행) : 지진구역 · 지진구역계수 · 위험도계수<br/>
@@ -2239,7 +2251,7 @@ function App(){
             <React.Fragment key={i}>
               <div className="ps-item">
                 <div className={`ps-dot${i===activeTab?' act':isDone(i)?' done':' idle'}`}>{isDone(i)?'✓':i}</div>
-                <span style={{color:isDone(i)?'#15803d':i===activeTab?'#1e3a5f':'#94a3b8',fontWeight:isDone(i)||i===activeTab?700:400,fontSize:11}}>
+                <span style={{color:isDone(i)?'#15803d':i===activeTab?'#4c388c':'#94a3b8',fontWeight:isDone(i)||i===activeTab?700:400,fontSize:11}}>
                   {STEP_NAMES[i]}
                 </span>
               </div>
@@ -2247,11 +2259,11 @@ function App(){
             </React.Fragment>
           ))}
           <span style={{marginLeft:'auto',display:'flex',gap:5,flexWrap:'wrap',alignItems:'center'}}>
-            {isDone(1)&&<span className="tag bl" style={{fontSize:10}}>D={f2(D_v)}</span>}
-            {isDone(2)&&<span className="tag gn" style={{fontSize:10}}>{R.live.flags.roof?`Lr=${f3(R.live.Lr)}`:`L=${f2(L_v)}`}</span>}
-            {isDone(3)&&<span className="tag bl" style={{fontSize:10}}>S={f3(S_v)}</span>}
-            {isDone(4)&&<span className="tag tl" style={{fontSize:10}}>W={f4(W_v)}</span>}
-            {isDone(5)&&<span className="tag rd" style={{fontSize:10}}>Cs={f4(Cs_v)}</span>}
+            {isDone(1)&&<span className="tag bl" style={{fontSize:11}}>D={f2(D_v)}</span>}
+            {isDone(2)&&<span className="tag gn" style={{fontSize:11}}>{R.live.flags.roof?`Lr=${f3(R.live.Lr)}`:`L=${f2(L_v)}`}</span>}
+            {isDone(3)&&<span className="tag bl" style={{fontSize:11}}>S={f3(S_v)}</span>}
+            {isDone(4)&&<span className="tag tl" style={{fontSize:11}}>W={f4(W_v)}</span>}
+            {isDone(5)&&<span className="tag rd" style={{fontSize:11}}>Cs={f4(Cs_v)}</span>}
           </span>
         </div>
 
@@ -2277,7 +2289,7 @@ function App(){
               <div className="rpt-hint no-print">📱 화면 폭에 맞춰 축소 표시됩니다. 인쇄·JPG는 원본 A4 크기로 출력됩니다.</div>
               {/* rpt-outer(#E8ECF1 배경) > rpt-inner(794px) > report-zone(계산서 본체) */}
               <ScaledPreview>
-                <div id="report-zone" style={{background:"white",padding:"14mm 12mm 22mm 14mm",fontFamily:"'Noto Sans KR','Noto Sans KR Local',sans-serif"}}>
+                <div id="report-zone" style={{background:"white",padding:"14mm 12mm 22mm 14mm",fontFamily:"'Pretendard Variable',Pretendard,'Noto Sans KR','Noto Sans KR Local',sans-serif"}}>
                   <PrintReport info={info} dead={dead} live={live} snow={snow} wind={wind} seis={seis} R={R}/>
                   <div id="dev-stamp">MANMIN · Ver-5.1</div>
                 </div>
@@ -2322,7 +2334,7 @@ function App(){
     </div>{/* /ui-shell */}
 
     {/* ══ 인쇄 전용 — #ui-shell 밖에 위치, @media print 에서만 표시 ══ */}
-    <div id="print-report-wrap" style={{background:"white",fontFamily:"'Noto Sans KR','Noto Sans KR Local',sans-serif"}}>
+    <div id="print-report-wrap" style={{background:"white",fontFamily:"'Pretendard Variable',Pretendard,'Noto Sans KR','Noto Sans KR Local',sans-serif"}}>
       <PrintReport info={info} dead={dead} live={live} snow={snow} wind={wind} seis={seis} R={R} forPrint={true}/>
       {/* v5.0 — position:fixed 각인. Chrome이 인쇄 시 매 페이지에 반복 출력한다. */}
       <div id="dev-stamp-print">MANMIN · Ver-5.1</div>
@@ -2481,7 +2493,7 @@ function HelpModal({ onClose, onInstall, deferredPrompt }) {
                 <div className="pwa-guide-step" style={{padding:'4px 0'}}><span className="n">2</span><b>'홈 화면에 추가'</b> 선택</div>
                 <div className="pwa-guide-step" style={{padding:'4px 0'}}><span className="n">3</span>우측 상단 <b>'추가'</b> 탭하여 완료</div>
               </div>
-              <div style={{fontSize:10.5,color:'var(--muted)',marginTop:10,lineHeight:1.7}}>
+              <div style={{fontSize:11,color:'var(--muted)',marginTop:10,lineHeight:1.7}}>
                 💡 PWA(Progressive Web App)는 별도 앱 스토어 없이 웹 브라우저에서 바로 설치할 수 있는 앱입니다.
               </div>
             </div>
@@ -2645,12 +2657,12 @@ if ('serviceWorker' in navigator) {
     ov.id = 'mm-save-ov';
     ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.62);' +
       'display:flex;align-items:center;justify-content:center;padding:16px;' +
-      "font-family:'Noto Sans KR','Noto Sans KR Local',sans-serif;";
+      "font-family:'Pretendard Variable',Pretendard,'Noto Sans KR','Noto Sans KR Local',sans-serif;";
     var bx = document.createElement('div');
     bx.style.cssText = 'background:#fff;border-radius:14px;width:100%;max-width:680px;max-height:88vh;' +
       'display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.32);';
     var hd = document.createElement('div');
-    hd.style.cssText = 'background:#1E3A5F;color:#fff;padding:14px 18px;display:flex;' +
+    hd.style.cssText = 'background:#4c388c;color:#fff;padding:14px 18px;display:flex;' +
       'align-items:center;justify-content:space-between;flex-shrink:0;';
     hd.innerHTML = '<b style="font-size:14px;font-weight:700;">🖼️ JPG 저장 — 전체 ' + shots.length + '장</b>' +
       '<span style="font-size:11px;opacity:.8;">페이지별로 눌러 저장하세요</span>';
@@ -2665,7 +2677,7 @@ if ('serviceWorker' in navigator) {
       img.style.cssText = 'width:100%;display:block;background:#fff;border-bottom:1px solid #E5E7EB;';
       var btn = document.createElement('button');
       btn.textContent = sh.no + ' / ' + shots.length + '  저장';
-      btn.style.cssText = 'width:100%;border:none;background:#1E3A5F;color:#fff;padding:9px;' +
+      btn.style.cssText = 'width:100%;border:none;background:#4c388c;color:#fff;padding:9px;' +
         "font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;";
       btn.onclick = function(){ save(sh); btn.textContent = '✓ 저장됨'; btn.style.background = '#15803D'; };
       card.appendChild(img); card.appendChild(btn); bd.appendChild(card);
@@ -2675,8 +2687,8 @@ if ('serviceWorker' in navigator) {
       'justify-content:flex-end;flex-shrink:0;background:#F8FAFC;';
     var all = document.createElement('button');
     all.textContent = '전체 저장 시도';
-    all.style.cssText = 'height:38px;padding:0 18px;border-radius:9px;border:1.5px solid #1E3A5F;' +
-      "background:#fff;color:#1E3A5F;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;";
+    all.style.cssText = 'height:38px;padding:0 18px;border-radius:9px;border:1.5px solid #4c388c;' +
+      "background:#fff;color:#4c388c;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;";
     all.onclick = function(){
       shots.forEach(function(sh,i){ setTimeout(function(){ save(sh); }, i*420); });
       all.textContent = '전체 저장 실행됨';
@@ -2684,7 +2696,7 @@ if ('serviceWorker' in navigator) {
     var cl = document.createElement('button');
     cl.textContent = '닫기';
     cl.style.cssText = 'height:38px;padding:0 18px;border-radius:9px;border:none;' +
-      "background:#1E3A5F;color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;";
+      "background:#4c388c;color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;";
     cl.onclick = function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); };
     ft.appendChild(all); ft.appendChild(cl);
     bx.appendChild(hd); bx.appendChild(bd); bx.appendChild(ft);
@@ -2724,7 +2736,7 @@ if ('serviceWorker' in navigator) {
       'color:' + (this.base.color || '#111827') + ';' +          /* 흐린 글자 방지 */
       'font-size:' + (this.base.fontSize || '13px') + ';' +
       'line-height:' + (this.base.lineHeight || '1.7') + ';' +
-      'font-family:' + (this.base.fontFamily || "'Noto Sans KR','Noto Sans KR Local',sans-serif") + ';';
+      'font-family:' + (this.base.fontFamily || "'Pretendard Variable',Pretendard,'Noto Sans KR','Noto Sans KR Local',sans-serif") + ';';
     var b = document.createElement('div');
     b.style.cssText = 'display:flow-root;';                     /* 마진 상쇄 방지 */
     p.appendChild(b); this.stage.appendChild(p);
@@ -2787,7 +2799,7 @@ if ('serviceWorker' in navigator) {
       if(t > 1){                                 /* 2매 이상일 때만 쪽번호 */
         this.pages[i].appendChild(stampEl(
           'left:' + PL + 'px;bottom:' + MM(9) + 'px;' +
-          "font-family:'JetBrains Mono','Noto Sans KR',monospace;" +
+          "font-family:'JetBrains Mono','Pretendard Variable',Pretendard,'Noto Sans KR',monospace;" +
           'font-size:8pt;color:#9ca3af;letter-spacing:0.04em;', (i+1) + ' / ' + t));
       }
     }
@@ -2916,5 +2928,15 @@ if ('serviceWorker' in navigator) {
 }
 @keyframes moMobile{from{transform:translateY(100%)}to{transform:translateY(0)}}
 </style>
+<!-- ══ FOOTER (하단 버전 표시) ══ -->
+<footer class="mm-foot no-print">
+  <div class="foot-inner">
+    <div>
+      <div class="foot-nm">MANMIN Ver-5.1</div>
+      <div class="foot-desc">건축물 설계하중 통합 산정 | KDS 41 12 00:2022</div>
+    </div>
+    <div class="foot-copy">ARCHITECT KIM MANMIN © 2026</div>
+  </div>
+</footer>
 </body>
 </html>
