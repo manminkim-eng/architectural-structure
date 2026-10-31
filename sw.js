@@ -31,7 +31,7 @@ const mmMatch = (req, opt) => caches.keys()
   .then((ks) => ks.reduce((p, k) => p.then((r) => r || caches.open(k).then((c) => c.match(req, opt))), Promise.resolve(undefined)))
   .then((r) => (r && r.type === 'opaque' && req && req.mode === 'cors') ? undefined : r);
 
-const CACHE_NAME = 'load-v5.1.2';   /* v5.1.0 (2026-10-14) — KDS 원문 대조 판정 · 계산 전면 정정 */
+const CACHE_NAME = 'load-v5.1.3';   /* v5.1.0 (2026-10-14) — KDS 원문 대조 판정 · 계산 전면 정정 */
 const ORPHAN     = ['manmin-load-v5.0', 'manmin-load-v5.0.1'];
 const STATIC_ASSETS = [
   './',
