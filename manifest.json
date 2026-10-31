@@ -1,5 +1,5 @@
 {
-  "name": "MANMIN 구조 · 건축물 설계하중 통합 산정",
+  "name": "MANMIN 설계하중",
   "short_name": "설계하중",
   "description": "KDS 41 12 00 : 2022 기준 건축물 설계하중 통합 산정. 고정·활·적설·풍·지진 5종 하중 + LRFD 하중조합 자동 산출",
   "start_url": "./index.html",
