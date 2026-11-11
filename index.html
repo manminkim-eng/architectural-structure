@@ -3,26 +3,26 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>건축물 설계하중 통합 산정 · MANMIN Ver-5.1</title>
+<title>건축물 설계하중 통합 산정 · MANMIN Ver-6.1</title>
 <!-- 링크 미리보기(네이버 · 카카오 · SNS) — 2026-10-30 전수 정비 -->
 <link rel="canonical" href="https://manminkim-eng.github.io/architectural-structure/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MANMIN ENGINEERING">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:title" content="건축물 설계하중 통합 산정 · MANMIN Ver-5.1">
-<meta property="og:description" content="KDS 41 12 00 : 2022 기준 건축물 설계하중 통합 산정 — 고정하중·활하중·적설하중·풍하중·지진하중 + 강도설계법 하중조합 자동 산출 · MANMIN Ver-5.1">
+<meta property="og:title" content="건축물 설계하중 통합 산정 · MANMIN Ver-6.1">
+<meta property="og:description" content="KDS 41 12 00 : 2022 기준 건축물 설계하중 통합 산정 — 고정하중·활하중·적설하중·풍하중·지진하중 + 강도설계법 하중조합 자동 산출 · MANMIN Ver-6.1">
 <meta property="og:url" content="https://manminkim-eng.github.io/architectural-structure/">
 <meta property="og:image" content="https://manminkim-eng.github.io/architectural-structure/og-card.jpg">
 <meta property="og:image:secure_url" content="https://manminkim-eng.github.io/architectural-structure/og-card.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="건축물 설계하중 통합 산정 · MANMIN Ver-5.1">
+<meta property="og:image:alt" content="건축물 설계하중 통합 산정 · MANMIN Ver-6.1">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="건축물 설계하중 통합 산정 · MANMIN Ver-5.1">
-<meta name="twitter:description" content="KDS 41 12 00 : 2022 기준 건축물 설계하중 통합 산정 — 고정하중·활하중·적설하중·풍하중·지진하중 + 강도설계법 하중조합 자동 산출 · MANMIN Ver-5.1">
+<meta name="twitter:title" content="건축물 설계하중 통합 산정 · MANMIN Ver-6.1">
+<meta name="twitter:description" content="KDS 41 12 00 : 2022 기준 건축물 설계하중 통합 산정 — 고정하중·활하중·적설하중·풍하중·지진하중 + 강도설계법 하중조합 자동 산출 · MANMIN Ver-6.1">
 <meta name="twitter:image" content="https://manminkim-eng.github.io/architectural-structure/og-card.jpg">
-<meta name="description" content="KDS 41 12 00 : 2022 기준 건축물 설계하중 통합 산정 — 고정하중·활하중·적설하중·풍하중·지진하중 + 강도설계법 하중조합 자동 산출 · MANMIN Ver-5.1"/>
+<meta name="description" content="KDS 41 12 00 : 2022 기준 건축물 설계하중 통합 산정 — 고정하중·활하중·적설하중·풍하중·지진하중 + 강도설계법 하중조합 자동 산출 · MANMIN Ver-6.1"/>
 <meta name="theme-color" content="#4c388c"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -1143,6 +1143,7 @@ function GuideModal({onClose}){
       <div className="mo-sec">경사지붕 불균형설하중 — 4.5.1</div>
       <div className="mo-txt">경사도 15° 이하 또는 70° 초과는 고려하지 않음 · 그 외에는 바람 불어오는 쪽 지붕면 0, 반대쪽 지붕면 <b>1.5Ss</b> — 하중조합의 S는 균형하중, 불균형하중은 부재 설계 때 별도 재하</div>
       <div className="mo-ref"><img src="./assets/kds/kds411200_fig4-2-1_Sg.jpg" alt="그림 4.2-1 기본지상설하중" style={{width:'100%',border:'1px solid #e2e8f0',borderRadius:6}}/><br/>그림 4.2-1 기본지상설하중 Sg (kN/m²) — KDS 41 12 00 : 2022</div>
+      <div className="mo-ref mm-law-memo"><b>📝 개정 예고 메모 (2026. 11. 11. 확인)</b><br/>「건축구조기준 및 소규모건축구조기준 일부 개정안(설하중 관련)」이 행정예고되었습니다(국토교통부 공고 제2026-464호 · 예고기간 2026. 4. 1. ~ 4. 21. · 대상 KDS 41 12 00 · KDS 42 10 00). 2026. 11. 11. 현재 개정 고시는 확인되지 않아 이 도구는 현행 KDS 41 12 00 : 2022(그림 4.2-1 · 식 4.3-1)를 적용합니다. 개정 고시 뒤에는 기본지상설하중 Sg와 설하중 산정식을 개정본으로 다시 확인하십시오.</div>
     </>,
     /* 4. 풍하중 */
     <>
@@ -1207,7 +1208,8 @@ function GuideModal({onClose}){
         &nbsp;· <b>KDS 41 17 00 : 2022</b> 건축물 내진설계기준 (2022.10.11 개정)<br/>
         &nbsp;· <b>KDS 41 10 05 : 2024</b> 건축구조기준 총칙 — 건축물 중요도 분류<br/><br/>
         <b>KDS 17 10 00</b> 내진설계 일반 — 국토교통부고시 제2024-147호 (2024.3.27. 시행) · 지진구역 · 지진구역계수 · 위험도계수<br/><br/>
-        <b>건축법 제48조 · 건축법 시행령 제32조</b> — 구조 안전의 확인 · 확인 서류 제출 대상
+        <b>건축법 제48조 · 건축법 시행령 제32조</b> — 구조 안전의 확인 · 확인 서류 제출 대상<br/><br/>
+        <b>📝 개정 예고 메모 (2026. 11. 11. 확인)</b> — 「건축구조기준 및 소규모건축구조기준 일부 개정안(설하중 관련)」이 행정예고되었습니다(국토교통부 공고 제2026-464호 · 예고기간 2026. 4. 1. ~ 4. 21. · 대상 KDS 41 12 00 · KDS 42 10 00). 2026. 11. 11. 현재 개정 고시는 확인되지 않아 이 도구는 현행 KDS 41 12 00 : 2022(그림 4.2-1 · 식 4.3-1)를 적용합니다. 개정 고시 뒤에는 기본지상설하중 Sg와 설하중 산정식을 개정본으로 다시 확인하십시오.
       </div>
       <div className="mo-sec">⚠️ 면책사항</div>
       <div className="mo-txt">
@@ -1691,6 +1693,7 @@ function StepSeismic({seis,setSeis,info,R}){
               {Object.keys(SOIL_DESC).map(k=><option key={k} value={k}>{k} — {SOIL_DESC[k]}</option>)}
             </select>
             <div style={{fontSize:11,color:'#64748b',marginTop:3}}>자료가 부족하고 S5 가능성이 없으면 S4 적용 가능 (4.1.1③)</div>
+            <div style={{fontSize:11,color:'#b45309',marginTop:3}}>S6(부지 고유의 특성평가 · 지반응답해석이 필요한 지반)은 이 도구로 산정할 수 없습니다 — S5로 바꾸어 입력하지 마십시오.</div>
             <label style={{display:'flex',alignItems:'flex-start',gap:6,fontSize:11,fontWeight:700,marginTop:6,cursor:seis.soil==='S4'?'pointer':'not-allowed',opacity:seis.soil==='S4'?1:.45}}>
               <input type="checkbox" checked={!!seis.fvDeep&&seis.soil==='S4'} disabled={seis.soil!=='S4'} onChange={ev=>set('fvDeep',ev.target.checked)} style={{width:13,height:13,marginTop:1}}/>
               4.2.2(2) 기반암 깊이 20 m 초과 · 평균 전단파속도 360 m/s 이상 → Fv × 80% (S4)
@@ -2097,7 +2100,8 @@ function PrintReport({info,dead,live,snow,wind,seis,R,forPrint=false}){
           ① <b>건축구조기준</b> 국토교통부고시 제2024-846호(2024.12.24. 시행) — <b>KDS 41 12 00 : 2022</b> 건축물 설계하중 · <b>KDS 41 17 00 : 2022</b> 건축물 내진설계기준 · <b>KDS 41 10 05 : 2024</b> 건축구조기준 총칙<br/>
           ② <b>KDS 17 10 00</b> 내진설계 일반 — 국토교통부고시 제2024-147호(2024.3.27. 시행) : 지진구역 · 지진구역계수 · 위험도계수<br/>
           ③ <b>건축법 제48조 · 시행령 제32조</b> — 구조 안전의 확인 · 확인 서류 제출 대상<br/>
-          ④ 풍하중은 간편법(5.15) · 지진하중은 등가정적해석법(7.2) · 하중조합은 연직 단위면적 하중으로 비교 — 정식 계산서는 책임구조기술자 확인 필요<br/><br/>
+          ④ 풍하중은 간편법(5.15) · 지진하중은 등가정적해석법(7.2) · 하중조합은 연직 단위면적 하중으로 비교 — 정식 계산서는 책임구조기술자 확인 필요<br/>
+          ⑤ <b>개정 예고 메모</b> — 설하중 관련 개정안 행정예고(국토교통부 공고 제2026-464호, 2026. 4. 1. ~ 4. 21.) · 2026. 11. 11. 현재 개정 고시 미확인 → 현행 KDS 41 12 00 : 2022 적용<br/><br/>
           <span style={{color:'#dc2626',fontWeight:700}}>⚠ 본 산정서는 건축사 인허가·VE 단계의 적정성 검토용이며, 정식 구조계산서(건축구조기술사 날인)를 대체하지 않습니다.</span>
         </div>
       </div>
@@ -2202,7 +2206,7 @@ function App(){
             {/* v5.0 — 마스터와 동일하게 각인을 부제 줄 끝에 인라인 배치한다. */}
             <div className="hdr-sub">
               건축구조기준 적용 · 고정·활·적설·풍·지진 5종 → 강도설계법 하중조합 자동 산출
-              <span className="hdr-manmin">MANMIN · Ver-5.1</span>
+              <span className="hdr-manmin">MANMIN · Ver-6.1</span>
             </div>
           </div>
           <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}}>
@@ -2293,7 +2297,7 @@ function App(){
               <ScaledPreview>
                 <div id="report-zone" style={{background:"white",padding:"14mm 12mm 22mm 14mm",fontFamily:"'Pretendard Variable',Pretendard,'Noto Sans KR','Noto Sans KR Local',sans-serif"}}>
                   <PrintReport info={info} dead={dead} live={live} snow={snow} wind={wind} seis={seis} R={R}/>
-                  <div id="dev-stamp">MANMIN · Ver-5.1</div>
+                  <div id="dev-stamp">MANMIN · Ver-6.1</div>
                 </div>
               </ScaledPreview>
             </div>
@@ -2339,7 +2343,7 @@ function App(){
     <div id="print-report-wrap" style={{background:"white",fontFamily:"'Pretendard Variable',Pretendard,'Noto Sans KR','Noto Sans KR Local',sans-serif"}}>
       <PrintReport info={info} dead={dead} live={live} snow={snow} wind={wind} seis={seis} R={R} forPrint={true}/>
       {/* v5.0 — position:fixed 각인. Chrome이 인쇄 시 매 페이지에 반복 출력한다. */}
-      <div id="dev-stamp-print">MANMIN · Ver-5.1</div>
+      <div id="dev-stamp-print">MANMIN · Ver-6.1</div>
     </div>
     </>
   );
@@ -2927,7 +2931,7 @@ if ('serviceWorker' in navigator) {
 <footer class="mm-foot no-print">
   <div class="foot-inner">
     <div>
-      <div class="foot-nm">MANMIN Ver-5.1</div>
+      <div class="foot-nm">MANMIN Ver-6.1</div>
       <div class="foot-desc">건축물 설계하중 통합 산정 | KDS 41 12 00:2022</div>
     </div>
     <div class="foot-copy">ARCHITECT KIM MANMIN © 2026</div>
@@ -3070,10 +3074,10 @@ if ('serviceWorker' in navigator) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
 </script>
-<!-- MM-PROJECT:BEGIN v1.0 -->
+<!-- MM-PROJECT:BEGIN v1.2 -->
 <script id="mm-project-js" data-tool="설계하중" data-pos="bottom:182px;right:16px" data-map="{}">
-/* MANMIN 공통 건물개요 원본 manmin-project.js v1.0 (2026-11-08, 작업지시서 §25-6-50)
-   정본: Z:\MIN-A\01.만민자료\02.설계자료\11.개발자료\65.개발자료[건물개요]\버전s-1.0\manmin-project-v1.0\
+/* MANMIN 공통 건물개요 원본 manmin-project.js v1.2 (2026-11-09, 작업지시서 §25-6-52 · v1.1 §25-6-51 · v1.0 §25-6-50)
+   정본: Z:\MIN-A\01.만민자료\02.설계자료\11.개발자료\65.개발자료[건물개요]\버전s-1.2\manmin-project-v1.2\
    도구에는 inject.py 가 MM-PROJECT:BEGIN · MM-PROJECT:END 표식 사이에 그대로 끼워 넣음(외부 링크 없음 · 오프라인 · Z: 사본 단독 동작). 도구에서 직접 고치지 말 것.
    하는 일: 같은 현장의 표지 정보 · 건물 수치를 localStorage「MANMIN_PROJECT_V1」에 담고 다른 도구에서 불러옴(같은 주소 manminkim-eng.github.io 아래 공유).
      저장 = 지금 도구 값을 담음(이 도구에 없는 항목은 저장값 그대로) · 불러오기 = 채울 값을 목록으로 먼저 보여 주고 확인하면 채움(이미 입력된 칸은 직접 체크해야 덮어씀)
@@ -3084,7 +3088,7 @@ if ('serviceWorker' in navigator) {
    기타 설정: data-tool(저장한 도구 이름) · data-pos(단추 위치 CSS, 기본 "top:10px;right:12px" — 도구의 머리 글자 · 떠 있는 단추와 겹치지 않는 자리로 지정) */
 (function () {
   var me = document.currentScript; if (!me || window.MMProject) return;
-  var KEYNAME = 'MANMIN_PROJECT_V1', VER = 'v1.0';
+  var KEYNAME = 'MANMIN_PROJECT_V1', VER = 'v1.2';
   var KEYS = ['사업명', '위치', '발주처', '작성자', '연면적', '지상층', '지하층', '높이', '구조'];
   var NUM = { 연면적: 1, 지상층: 1, 지하층: 1, 높이: 1 };
   /* 이름표 정규식 — 사업명은 공통 인쇄 원본 KEY 와 같음 */
@@ -3188,7 +3192,7 @@ if ('serviceWorker' in navigator) {
     + '.mm-proj-back{position:fixed;inset:0;z-index:2147483002;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;padding:12px}'
     + '.mm-proj-dlg{background:#fff;border-radius:12px;max-width:560px;width:100%;max-height:calc(100vh - 24px);overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.25)}'
     + '.mm-proj-dlg h3{margin:0;padding:14px 16px 4px;font-size:16px;color:' + theme + '}.mm-proj-dlg .mm-proj-note{padding:0 16px 8px;font-size:12px;color:#6b7280}'
-    + '.mm-proj-dlg table{width:100%;border-collapse:collapse;font-size:13px}.mm-proj-dlg th,.mm-proj-dlg td{padding:6px 8px;border-top:1px solid #eef0f3;text-align:left;vertical-align:top;word-break:break-all}'
+    + '.mm-proj-dlg table{width:100%;min-width:0;max-width:100%;table-layout:auto;border-collapse:collapse;font-size:13px}.mm-proj-dlg th,.mm-proj-dlg td{padding:6px 8px;border-top:1px solid #eef0f3;text-align:left;vertical-align:top;white-space:normal;word-break:break-all}'
     + '.mm-proj-dlg th{font-weight:600;color:#374151;white-space:nowrap;background:#f9fafb}.mm-proj-dlg td.mm-proj-old{color:#9ca3af}.mm-proj-dlg .mm-proj-warn{color:#b45309;font-size:11px}'
     + '.mm-proj-foot{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px}.mm-proj-foot button{padding:7px 14px;font-size:13px;border-radius:8px;border:1px solid #d1d5db;background:#fff;cursor:pointer}'
     + '.mm-proj-foot button.mm-proj-ok{background:' + theme + ';border-color:' + theme + ';color:#fff;font-weight:600}'

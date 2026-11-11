@@ -1,4 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
+   v6.1.0 2026-11-11 — 설하중 개정 예고 메모(국토교통부 공고 제2026-464호 · 고시 미확인) · 지반 S6 안내 · MM-PROJECT v1.2 · 판 6.1 · 캐시명 v6.1.0
    S11b 회차 2026-09-05 — 아이콘 파일명 45 규격(icon-NxN)으로 변경 · manifest 갱신 유도 · 캐시명 v5.0.9
    S11 회차 2026-09-05 — 앱 아이콘 45 내진성능과 동일화 · 캐시명 v5.0.8
    S9 회차 2026-09-05 — R28 JPG v5.5 소제목 동반 이관 동반 캐시명 v5.0.7
@@ -31,7 +32,7 @@ const mmMatch = (req, opt) => caches.keys()
   .then((ks) => ks.reduce((p, k) => p.then((r) => r || caches.open(k).then((c) => c.match(req, opt))), Promise.resolve(undefined)))
   .then((r) => (r && r.type === 'opaque' && req && req.mode === 'cors') ? undefined : r);
 
-const CACHE_NAME = 'load-v5.1.9';   /* v5.1.0 (2026-10-14) — KDS 원문 대조 판정 · 계산 전면 정정 */
+const CACHE_NAME = 'load-v6.1.0';   /* 2026-11-11 v6.1.0 개정 예고 메모 · S6 안내 · 판 6.1 (종전 v5.1.9) */   /* v5.1.0 (2026-10-14) — KDS 원문 대조 판정 · 계산 전면 정정 */
 const ORPHAN     = ['manmin-load-v5.0', 'manmin-load-v5.0.1'];
 const STATIC_ASSETS = [
   './',
