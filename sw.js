@@ -1,4 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
+   v6.1.2 (2026-11-12) — React 18.3.1 · Babel 7.29.7 주소 unpkg → cdnjs(같은 파일 · 해시 일치) · SRI(integrity) · Pretendard CSS SRI(정밀검토 C2) — 화면 · 계산 · 인쇄 불변 · 작업지시서 §25-6-82 · 캐시명 v6.1.2 (종전 v6.1.1)
    v6.1.1 (2026-11-12) — 건물개요 공통 원본 MM-PROJECT v1.2 → v1.3(불러오기 창 표 칸 모양 고정 — 도구 CSS 가 새지 않음 · 저장값 같음, 정밀검토 C10) · 작업지시서 §25-6-80 · 판 6.1 · 캐시명 v6.1.1 (종전 v6.1.0)
    v6.1.0 2026-11-11 — 설하중 개정 예고 메모(국토교통부 공고 제2026-464호 · 고시 미확인) · 지반 S6 안내 · MM-PROJECT v1.2 · 판 6.1 · 캐시명 v6.1.0
    S11b 회차 2026-09-05 — 아이콘 파일명 45 규격(icon-NxN)으로 변경 · manifest 갱신 유도 · 캐시명 v5.0.9
@@ -33,7 +34,7 @@ const mmMatch = (req, opt) => caches.keys()
   .then((ks) => ks.reduce((p, k) => p.then((r) => r || caches.open(k).then((c) => c.match(req, opt))), Promise.resolve(undefined)))
   .then((r) => (r && r.type === 'opaque' && req && req.mode === 'cors') ? undefined : r);
 
-const CACHE_NAME = 'load-v6.1.1';   /* 2026-11-11 v6.1.0 개정 예고 메모 · S6 안내 · 판 6.1 (종전 v5.1.9) */   /* v5.1.0 (2026-10-14) — KDS 원문 대조 판정 · 계산 전면 정정 */
+const CACHE_NAME = 'load-v6.1.2';   /* 2026-11-11 v6.1.0 개정 예고 메모 · S6 안내 · 판 6.1 (종전 v5.1.9) */   /* v5.1.0 (2026-10-14) — KDS 원문 대조 판정 · 계산 전면 정정 */
 const ORPHAN     = ['manmin-load-v5.0', 'manmin-load-v5.0.1'];
 const STATIC_ASSETS = [
   './',
@@ -49,9 +50,9 @@ const STATIC_ASSETS = [
   './assets/kds/kds411200_fig4-2-1_Sg.jpg',
   'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@700;900&display=swap',
   /* v5.1.0 — index.html <script> 와 같은 버전 고정 주소 (종전 @18 · 무버전 주소는 index 요청과 달라 오프라인에서 쓰이지 않았다) */
-  'https://unpkg.com/react@18.3.1/umd/react.production.min.js',
-  'https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js',
-  'https://unpkg.com/@babel/standalone@7.29.7/babel.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.29.7/babel.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
 
