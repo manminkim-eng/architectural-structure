@@ -1,4 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
+   v6.1.4 (2026-11-23) — 교차검증(Claude × Gemini) 반영: 표 3.2-1 16 발코니 · 17 1층 외 복도 · 칸막이 3.2.3 단서 선택 · 용도 안내 · 4.3.5(1) 곡면지붕 · 7.2.1⑤ 옥상조경 · 입력 검증(0 이하 「—」) · SDS 없으면 범주 「—」 — 예제 A · B · C 결과 불변 · 캐시명 v6.1.4 (종전 v6.1.3)
    v6.1.3 (2026-11-12) — html2canvas 1.4.1 머리 태그 SRI(integrity sha384 · crossorigin) · 공통 인쇄 원본 MM-PRINT v1.0 → v1.1(지연 로더도 SRI)(정밀검토 B8 · html2canvas SRI) — 화면 · 계산 · 인쇄 불변 · 작업지시서 §25-6-87 · 캐시명 v6.1.3 (종전 v6.1.2)
    v6.1.2 (2026-11-12) — React 18.3.1 · Babel 7.29.7 주소 unpkg → cdnjs(같은 파일 · 해시 일치) · SRI(integrity) · Pretendard CSS SRI(정밀검토 C2) — 화면 · 계산 · 인쇄 불변 · 작업지시서 §25-6-82 · 캐시명 v6.1.2 (종전 v6.1.1)
    v6.1.1 (2026-11-12) — 건물개요 공통 원본 MM-PROJECT v1.2 → v1.3(불러오기 창 표 칸 모양 고정 — 도구 CSS 가 새지 않음 · 저장값 같음, 정밀검토 C10) · 작업지시서 §25-6-80 · 판 6.1 · 캐시명 v6.1.1 (종전 v6.1.0)
@@ -35,7 +36,7 @@ const mmMatch = (req, opt) => caches.keys()
   .then((ks) => ks.reduce((p, k) => p.then((r) => r || caches.open(k).then((c) => c.match(req, opt))), Promise.resolve(undefined)))
   .then((r) => (r && r.type === 'opaque' && req && req.mode === 'cors') ? undefined : r);
 
-const CACHE_NAME = 'load-v6.1.3';   /* 2026-11-11 v6.1.0 개정 예고 메모 · S6 안내 · 판 6.1 (종전 v5.1.9) */   /* v5.1.0 (2026-10-14) — KDS 원문 대조 판정 · 계산 전면 정정 */
+const CACHE_NAME = 'load-v6.1.4';   /* 2026-11-11 v6.1.0 개정 예고 메모 · S6 안내 · 판 6.1 (종전 v5.1.9) */   /* v5.1.0 (2026-10-14) — KDS 원문 대조 판정 · 계산 전면 정정 */
 const ORPHAN     = ['manmin-load-v5.0', 'manmin-load-v5.0.1'];
 const STATIC_ASSETS = [
   './',
