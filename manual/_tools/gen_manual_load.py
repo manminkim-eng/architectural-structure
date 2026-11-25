@@ -14,10 +14,13 @@ EX = json.load(open(os.path.join(HERE, '_example.json'), encoding='utf-8'))
 A, Bx, C = EX['A']['R'], EX['B']['R'], EX['C']['R']
 IA, IB, IC = EX['A']['in'], EX['B']['in'], EX['C']['in']
 
-VER = 'Ver-5.1'
-REL = 'v5.1.0'
-DATE = '2026-10-14'
-PDF = '설계하중_사용자매뉴얼_Ver-5.1.pdf'
+import re as _re
+VER = 'Ver-6.1'   # 매뉴얼 판 = 도구 판 6.1.x 의 이름(2026-11-25 표기 통일, 종전 Ver-5.1)
+_SW = os.path.join(os.path.dirname(os.path.dirname(HERE)), 'sw.js')   # 대상 프로그램 판은 저장소 sw.js 캐시명에서 읽음
+REL = 'v' + _re.search(r"CACHE_NAME\s*=\s*'load-v(\d+\.\d+\.\d+)'", open(_SW, encoding='utf-8').read()).group(1)
+DATE = '2026-11-25'   # 매뉴얼 작성(개정)일
+SRC = '2026-10-14'    # 고시 첨부 원문 대조일 · 초판(Ver-5.1)
+PDF = '설계하중_사용자매뉴얼_Ver-6.1.pdf'
 APP_URL = 'https://manminkim-eng.github.io/architectural-structure/'
 APP = '건축물 설계하중 통합 산정'
 LAW = '건축구조기준(국토교통부고시 제2024-846호, 2024. 12. 24. 시행) 첨부 KDS 41 12 00 : 2022 · KDS 41 17 00 : 2022 · KDS 41 10 05 : 2024, KDS 17 10 00(국토교통부고시 제2024-147호, 2024. 3. 27. 시행)'
@@ -82,10 +85,10 @@ S.append(f"""{EXTRA_CSS}<section class="ch" id="ch0"><h2><span class="n">00</spa
 {K(T([
  ['대상 프로그램', f'{APP} <b>MANMIN {VER}</b>({REL}) — 탭 막대 「📘 매뉴얼」 버튼으로 이 문서가 열립니다'],
  ['접속 주소', f'<a href="{APP_URL}" target="_blank" rel="noopener">manminkim-eng.github.io/architectural-structure</a>'],
- ['매뉴얼 판', f'<b>{VER}</b> (화면 표기와 같은 판 번호, 초판) · {DATE} · 작성 김만민 건축사(㈜대성건축사사무소)'],
+ ['매뉴얼 판', f'<b>{VER}</b> (화면 표기와 같은 판 번호) · 초판 Ver-5.1 {SRC} · Ver-6.1 표기 통일 {DATE} · 작성 김만민 건축사(㈜대성건축사사무소)'],
  ['내려받기', f'<a href="{PDF}" download>PDF(A4)</a> · <a href="../index.html">{APP} 열기</a>'],
  ['예제', f'본문 그림은 예제 A(서울 업무시설 RC 3층 · 높이 12 m · 중요도(2) — 앱 기본값)로 캡처했습니다 — <b>D {f2(A["dead"]["D"])} · L {f2(A["live"]["L"])} · S {f3(A["snow"]["S"])} · W {f4(A["wind"]["W"])} kN/m² · Cs {f4(A["seis"]["Cs"])} · V {f2(A["seis"]["V"])} kN</b>. 예제 B(익산 학교) · C(춘천 창고)는 <a href="#a2">부록 A2</a>'],
- ['근거 기준', f'{LAW} — 고시 첨부 원문 PDF 대조({DATE})'],
+ ['근거 기준', f'{LAW} — 고시 첨부 원문 PDF 대조({SRC})'],
  ['읽는 순서', '처음이면 1장 → 2장(따라하기) → 필요할 때 3장(화면별 상세). 구조계산서 · 설계도서에 쓰기 전에는 4장(기준 해설) · 5장(작업 방법)'],
 ], ['항목', '내용']))}
 <div class="note"><b>표기</b>그림 위 주황색 번호(①②…)는 그림 아래 범례 번호와 같습니다. 그림을 누르면 크게 볼 수 있습니다. 「3.5」처럼 장 · 절 번호만 쓴 것은 KDS 41 12 00 : 2022, 「KDS 41 17 00 7.2」처럼 기준명을 붙인 것은 그 기준의 조항입니다. 하중 단위는 kN/m², 힘은 kN입니다.</div>
@@ -113,7 +116,7 @@ S.append(f"""<section class="ch" id="ch1"><h2><span class="n">01</span>한눈에
  ['설치', '주소창의 설치 아이콘 또는 휴대전화 「홈 화면에 추가」로 앱처럼 쓸 수 있습니다. 한 번 연 뒤에는 인터넷 없이도 산정됩니다(「도움말」 → 「📲 앱 설치」)'],
  ['결과 보관', '산정 결과는 계산서 탭에서 A4 산정서(PDF · JPG)로 남기십시오. 화면을 닫으면 입력값은 남지 않습니다'],
  ['매뉴얼', '탭 막대 오른쪽 끝 「📘 매뉴얼」 — 인터넷 연결 시 새 창으로 열립니다. 좁은 화면에서는 탭 막대를 좌우로 밀면 보입니다'],
- ['업데이트', '새 버전이 올라오면 다음 접속 때 자동으로 바뀝니다. 화면 표기가 Ver-5.1이 아니면 새로 고침(Ctrl+F5)'],
+ ['업데이트', f'새 버전이 올라오면 다음 접속 때 자동으로 바뀝니다. 화면 표기가 {VER}이 아니면 새로 고침(Ctrl+F5)'],
 ], ['항목', '내용']))}
 </section>""")
 
@@ -218,7 +221,7 @@ S.append(f"""<section class="ch" id="ch4"><h2><span class="n">04</span>기준 �
  ['KDS 41 10 05 : 2024', '건축구조기준 총칙 — 중요도 분류(특 · 1 · 2 · 3)'],
  ['KDS 17 10 00', '내진설계 일반(국토교통부고시 제2024-147호, 2024. 3. 27. 시행) — 표 4.2-1 지진구역 · 4.2-2 지진구역계수 · 4.2-3 위험도계수 · 4.2.1.2 지반분류'],
 ], ['기준', '내용'])))}
-<p class="mono" style="font-size:13px;color:var(--text2)">고시 첨부 원문 PDF 대조 {DATE} · KDS 원문은 국가건설기준센터(kcsc.re.kr)에서 열람할 수 있습니다.</p>
+<p class="mono" style="font-size:13px;color:var(--text2)">고시 첨부 원문 PDF 대조 {SRC} · KDS 원문은 국가건설기준센터(kcsc.re.kr)에서 열람할 수 있습니다.</p>
 <h3 id="s4-2">4-2. 중요도와 계수</h3>
 {K(T([
  ['특', '1.2', '1.00', '1.5', '내진특등급'],
@@ -360,6 +363,8 @@ S.append(f"""<section class="ch" id="ch7"><h2><span class="n">부록</span></h2>
  ['예제', 'D', 'L', 'S', 'W', '구역 · 범주', 'Cs', 'W (kN)', 'V (kN)', '연직 지배'])))}
 <h3 id="a3">A3. 버전 변경 내역</h3>
 {K(T([
+ [f'Ver-6.1 매뉴얼 ({DATE})', f'Ver-6.1 표기 통일(2026-11-25) — 매뉴얼 제목 · 표지 · 머리 · 꼬리말 · PDF 이름 Ver-5.1 → Ver-6.1, 대상 프로그램 {REL}, 판 표기가 찍힌 그림 7장 다시 캡처(본문 · 예제 값 변경 없음)'],
+ ['Ver-6.1 · v6.1.0 ~ v6.1.4 (2026-11-11 ~ 11-23)', '판 6.1 · 설하중 개정 예고 메모 · 지반 S6 안내(v6.1.0), 건물개요 MM-PROJECT v1.3(v6.1.1), CDN 판 통일 · SRI · 인쇄 공통 원본 MM-PRINT v1.1(v6.1.2 · v6.1.3), 교차검증 반영 — 표 3.2-1 16 발코니 · 17 1층 외 복도 · 칸막이 3.2.3 단서 선택 · 4.3.5(1) 곡면지붕 · 7.2.1⑤ 옥상조경 · 입력 검증(v6.1.4, 예제 A · B · C 결과 불변) — 이 화면 변경의 본문 해설은 다음 매뉴얼 개정에서 보완'],
  ['Ver-5.1 · v5.1.9 (2026-11-08)', '「🏢 건물개요」 저장 · 불러오기 — 프로젝트명 · 층수 · 높이를 다른 MANMIN 도구와 공유, 파일 내보내기 · 가져오기(공통 원본 MM-PROJECT v1.0, 계산 변경 없음)'],
  ['Ver-5.1 · v5.1.0 (2026-10-14)', 'KDS 원문 대조 판정 · 계산 전면 정정(<a href="#s4-11">4-11</a>), 3.6 지붕활하중 · 4.5.1 불균형설하중 · 4.2.2 증폭계수 조정 · 판독 근거 칸 추가, 엔진 단일화 · 독립 검증, KDS 그림 5.5-1 · 4.2-1 내장, 탭 막대 「📘 매뉴얼」 · 사용자 매뉴얼'],
  ['Ver-5.0 · v5.0.11 (2026-09)', '도움말 · 가이드 창 높이 통일'],
@@ -383,6 +388,6 @@ html = render(title=f'{APP} 사용자 매뉴얼 {VER} · MANMIN',
               eyebrow='MANMIN ENGINEERING · USER MANUAL', h1=f'{APP} 사용자 매뉴얼',
               sub='프로젝트 조건 → D · L · S · W · E 산정 → 하중조합 식(1.7-1) ~ (1.7-7) → A4 설계하중 산정서', ver=VER, date=DATE, app_name=APP,
               pdf=PDF, toc=TOC, sections=S, foot_note='KDS 41 12 00 : 2022 · KDS 41 17 00 : 2022 · KDS 17 10 00')
-html = html.replace('화면 대응 개정 2026-10-12', '화면 대응 개정 ' + DATE)
+html = html.replace('화면 대응 개정 2026-10-12', '화면 대응 개정 ' + SRC + ' · 판 표기 개정 ' + DATE)
 open(os.path.join(B, 'index.html'), 'w', encoding='utf-8').write(html)
 print('manual ok', len(html))
